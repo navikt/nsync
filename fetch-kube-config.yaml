@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Ensure kube directory exists
+    file: state=directory path=kube
+
+- hosts: masters
+  user: deployer
+  become: yes
+  tasks:
+
+  - name: fetch cluster-admin from master
+    fetch: src=/etc/kubernetes/kubeconfigs/cluster-admin.conf dest=kube/config flat=yes
