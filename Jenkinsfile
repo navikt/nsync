@@ -39,7 +39,7 @@ node {
         }
 
         stage("run integration tests") {
-            sh("echo "testing all night long"")
+            sh("echo 'testing all night long'")
         }
 
     } catch (e) {
