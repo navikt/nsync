@@ -22,7 +22,7 @@ node {
         }
 
         stage("run naisible") {
-            sh('̈́ansible-playbook -i ./nais-inventory/${cluster} ./naisible/setup-playbook.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${cluster} ./naisible/setup-playbook.yaml")
         }
 
         stage("test basic functionality") {
