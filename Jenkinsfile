@@ -30,11 +30,8 @@ node {
             sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/test-playbook.yaml")
         }
 
-        stage("fetch kube-config from master") {
-            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
-        }
-
         stage("update nais platform apps") {
+            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
             sh("sudo docker run -v `pwd`/naiscaper:/root/naiscaper -v `pwd`/kube:/root/.kube navikt/naiscaper:latest /usr/bin/landscaper --dir /root/naiscaper/clusters/${params.cluster} --context ${params.cluster} apply")
         }
 
