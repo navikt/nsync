@@ -17,8 +17,8 @@ node {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-platform-apps.git"
             }
 
-            committer = sh(script: "git log -1 --pretty=format:"%ae (%an)"", returnStdout: true).trim()
-            committerEmail = sh(script: "git log -1 --pretty=format:"%ae"", returnStdout: true).trim()
+            committer = sh(script: "git log -1 --pretty=format:'%ae (%an)'", returnStdout: true).trim()
+            committerEmail = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
         }
 
         stage("run naisible") {
