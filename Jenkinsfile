@@ -1,5 +1,5 @@
 node {
-    def cluster, committer, committerEmail // metadata
+    def committer, committerEmail // metadata
 
     try {
         stage("init") {
@@ -22,20 +22,20 @@ node {
         }
 
         stage("run naisible") {
-            sh("ansible-playbook -i ./nais-inventory/${cluster} ./naisible/setup-playbook.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/setup-playbook.yaml")
         }
 
         stage("test basic functionality") {
             sleep 15 // allow addons to start
-            sh("ansible-playbook -i ./nais-inventory/${cluster} ./naisible/test-playbook.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/test-playbook.yaml")
         }
 
         stage("fetch kube-config from master") {
-            sh("ansible-playbook -i ./nais-inventory/${cluster} ./fetch-kube-config.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
         }
 
         stage("update nais platform apps") {
-            sh("sudo docker run -v `pwd`/naiscaper:/root/naiscaper -v `pwd`/kube:/root/.kube navikt/naiscaper:latest /usr/bin/landscaper --dir /root/naiscaper/clusters/${cluster} --context ${cluster} apply")
+            sh("sudo docker run -v `pwd`/naiscaper:/root/naiscaper -v `pwd`/kube:/root/.kube navikt/naiscaper:latest /usr/bin/landscaper --dir /root/naiscaper/clusters/${params.cluster} --context ${params.cluster} apply")
         }
 
         stage("run integration tests") {
