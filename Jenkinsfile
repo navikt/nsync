@@ -3,7 +3,7 @@ node {
 
     try {
         stage("init") {
-            git url: "ssh://git@stash.devillo.no:7999/aura/${cluster}-pipeline.git"
+            git url: "ssh://git@stash.devillo.no:7999/aura/nsync.git"
 
             dir("nais-inventory") {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-inventory.git"
