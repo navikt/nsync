@@ -21,6 +21,10 @@ node {
             committerEmail = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
         }
 
+        stage("clean") {
+            sh("rm -rf ./target")
+        }
+
         stage("run naisible") {
             sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/setup-playbook.yaml")
         }
