@@ -5,6 +5,8 @@ node {
         stage("init") {
             git url: "ssh://git@stash.devillo.no:7999/aura/nsync.git"
 
+			sh("rm -rf naisible nais-inventory nais-platform-apps")
+
             dir("nais-inventory") {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-inventory.git"
             }
@@ -19,10 +21,6 @@ node {
 
             committer = sh(script: "git log -1 --pretty=format:'%ae (%an)'", returnStdout: true).trim()
             committerEmail = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
-        }
-
-        stage("clean") {
-            sh("rm -rf ./target")
         }
 
         stage("run naisible") {
