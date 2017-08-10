@@ -46,7 +46,7 @@ node {
         }
 
         stage("fetch and copy kubeconfigs") {
-            sh('cd /kubeconfigs; ./fetch-kube-config.sh')
+            sh('cd ./kubeconfigs; ./fetch-kube-config.sh')
         }
 
     } catch (e) {
