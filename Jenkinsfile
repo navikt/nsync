@@ -19,6 +19,10 @@ node {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-platform-apps.git"
             }
 
+            dir("kubeconfigs") {
+                git url: "ssh://git@stash.devillo.no:7999/aura/kubeconfigs.git"
+            }
+
             committer = sh(script: "git log -1 --pretty=format:'%ae (%an)'", returnStdout: true).trim()
             committerEmail = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
         }
@@ -39,6 +43,10 @@ node {
 
         stage("run integration tests") {
             sh("echo 'testing all night long'")
+        }
+
+        stage("fetch and copy kubeconfigs") {
+            sh('cd /kubeconfigs; ./fetch-kube-config.sh')
         }
 
     } catch (e) {
