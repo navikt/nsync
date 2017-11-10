@@ -28,19 +28,19 @@ node {
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${params.cluster} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
-//        stage("run naisible") {
-//            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/setup-playbook.yaml")
-//        }
-//
-//        stage("test basic functionality") {
-//            sleep 15 // allow addons to start
-//            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/test-playbook.yaml")
-//        }
-//
-//        stage("update nais platform apps") {
-//            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
-//            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/kube:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${params.cluster} --context ${params.cluster} --namespace nais apply\"")
-//        }
+        stage("run naisible") {
+            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/setup-playbook.yaml")
+        }
+
+        stage("test basic functionality") {
+            sleep 15 // allow addons to start
+            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/test-playbook.yaml")
+        }
+
+        stage("update nais platform apps") {
+            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/kube:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${params.cluster} --context ${params.cluster} --namespace nais apply\"")
+        }
 
 		stage("deploy nais-testapp") {
             // wait till naisd is up
@@ -50,7 +50,7 @@ node {
                             consoleLogResponseBody: true,
                             ignoreSslErrors: true,
                             responseHandle: 'NONE',
-                            url: 'https://daemon.nais-ci.devillo.no/isalive',
+                            url: 'https://daemon.' + clusterSuffix +'/isalive',
                             validResponseCodes: '200'
 			}
 
