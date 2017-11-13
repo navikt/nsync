@@ -39,7 +39,7 @@ node {
 
         stage("update nais platform apps") {
             sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
-            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/kube:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${params.cluster} --context ${params.cluster} --namespace nais apply\"")
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${params.cluster}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${params.cluster} --context ${params.cluster} --namespace nais apply\"")
         }
 
 		stage("deploy nais-testapp") {
