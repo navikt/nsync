@@ -47,7 +47,7 @@ node {
         }
 
         stage("update nais 3rd party apps") {
-            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${params.cluster}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-tpa/clusters/${params.cluster} --context ${params.cluster} --namespace tpa apply\"")
+            sh("sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${params.cluster}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-tpa/clusters/${params.cluster} --context ${params.cluster} --namespace tpa apply\"")
         }
 
 		stage("deploy nais-testapp") {
