@@ -19,6 +19,10 @@ node {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-platform-apps.git"
             }
 
+            dir("nais-tpa") {
+                git url: "ssh://git@stash.devillo.no:7999/aura/nais-tpa.git"
+            }
+
             dir("kubeconfigs") {
                 git url: "ssh://git@stash.devillo.no:7999/aura/kubeconfigs.git"
             }
@@ -40,6 +44,10 @@ node {
         stage("update nais platform apps") {
             sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
             sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${params.cluster}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${params.cluster} --context ${params.cluster} --namespace nais apply\"")
+        }
+
+        stage("update nais 3rd party apps") {
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${params.cluster}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-tpa/clusters/${params.cluster} --context ${params.cluster} --namespace tpa apply\"")
         }
 
 		stage("deploy nais-testapp") {
