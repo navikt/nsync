@@ -9,5 +9,5 @@
   become: yes
   tasks:
 
-  - name: fetch cluster-admin from master
-    fetch: src=/etc/kubernetes/kubeconfigs/cluster-admin.conf dest={{cluster_name}}/config flat=yes
+  - name: fetch nais-admin from master
+    fetch: src=/etc/kubernetes/kubeconfigs/nais-admin.conf dest={{cluster_name}}/config flat=yes
