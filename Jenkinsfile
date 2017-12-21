@@ -23,10 +23,6 @@ node {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-tpa.git"
             }
 
-            dir("kubeconfigs") {
-                git url: "ssh://git@stash.devillo.no:7999/aura/kubeconfigs.git"
-            }
-
             committer = sh(script: "git log -1 --pretty=format:'%ae (%an)'", returnStdout: true).trim()
             committerEmail = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${params.cluster} | cut -d'=' -f2", returnStdout: true).trim()
@@ -83,10 +79,6 @@ node {
                             url: 'https://nais-testapp.' + clusterSuffix + '/healthcheck',
                             validResponseCodes: '200'
 			}
-        }
-
-        stage("fetch and copy kubeconfigs") {
-            sh('cd ./kubeconfigs; ./fetch-kube-config.sh')
         }
 
     } catch (e) {
