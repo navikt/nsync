@@ -2,7 +2,7 @@ node {
     def committer, committerEmail, clusterSuffix // metadata
     def clusterName = params.cluster
 
-	if (!cluster?.trim()){
+	if (!clusterName?.trim()){
 		error "cluster is not defined, aborting"
 	} 
 
