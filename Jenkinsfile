@@ -2,6 +2,10 @@ node {
     def committer, committerEmail, clusterSuffix // metadata
     def clusterName = params.cluster
 
+	if (!cluster?.trim()){
+		error "cluster is not defined, aborting"
+	} 
+
     try {
         stage("init") {
             git url: "ssh://git@stash.devillo.no:7999/aura/nsync.git"
