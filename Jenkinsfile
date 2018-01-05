@@ -1,5 +1,6 @@
 node {
     def committer, committerEmail, clusterSuffix // metadata
+    def clusterName = ${params.cluster}
 
     try {
         stage("init") {
@@ -25,25 +26,25 @@ node {
 
             committer = sh(script: "git log -1 --pretty=format:'%ae (%an)'", returnStdout: true).trim()
             committerEmail = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
-            clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${params.cluster} | cut -d'=' -f2", returnStdout: true).trim()
+            clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
         stage("run naisible") {
-            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/setup-playbook.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/setup-playbook.yaml")
         }
 
         stage("test basic functionality") {
             sleep 15 // allow addons to start
-            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./naisible/test-playbook.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/test-playbook.yaml")
         }
 
         stage("update nais platform apps") {
-            sh("ansible-playbook -i ./nais-inventory/${params.cluster} ./fetch-kube-config.yaml")
-            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${params.cluster}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${params.cluster} --context ${params.cluster} --namespace nais apply\"")
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${clusterName} --context ${clusterName} --namespace nais apply\"")
         }
 
         stage("update nais 3rd party apps") {
-            sh("sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${params.cluster}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-tpa/clusters/${params.cluster} --context ${params.cluster} --namespace tpa apply\"")
+            sh("sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-tpa/clusters/${clusterName} --context ${clusterName} --namespace tpa apply\"")
         }
 
 		stage("deploy nais-testapp") {
@@ -81,12 +82,20 @@ node {
 			}
         }
 
-    } catch (e) {
-        currentBuild.result = "FAILED"
-        throw e
+        slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced. See log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
-        mail body: message, from: "jenkins@aura.adeo.no", subject: "FAILED to complete ${env.JOB_NAME}", to: committerEmail
-        def errormessage = "see jenkins for more info ${env.BUILD_URL}"
+
+        if (currentBuild.result == null) {
+            currentBuild.result = "SUCCESS"
+        }
+    } catch (e) {
+        if (currentBuild.result == null) {
+            currentBuild.result = "FAILURE"
+        }
+
+        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}. See log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+
+        throw e
     }
 }
 
