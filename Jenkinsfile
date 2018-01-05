@@ -1,6 +1,6 @@
 node {
     def committer, committerEmail, clusterSuffix // metadata
-    def clusterName = ${params.cluster}
+    def clusterName = params.cluster
 
     try {
         stage("init") {
