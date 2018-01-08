@@ -1,5 +1,5 @@
 node {
-    def committer, committerEmail, clusterSuffix // metadata
+    def lastCommit, clusterSuffix // metadata
     def clusterName = params.cluster
 
 	if (!clusterName?.trim()){
@@ -10,7 +10,7 @@ node {
         stage("init") {
             git url: "ssh://git@stash.devillo.no:7999/aura/nsync.git"
 
-			sh("rm -rf naisible nais-inventory nais-platform-apps")
+			sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps")
 
             dir("nais-inventory") {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-inventory.git"
@@ -28,9 +28,8 @@ node {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-tpa.git"
             }
 
-            committer = sh(script: "git log -1 --pretty=format:'%ae (%an)'", returnStdout: true).trim()
-            committerEmail = sh(script: "git log -1 --pretty=format:'%ae'", returnStdout: true).trim()
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
+			lastCommit = sh(script: "/bin/sh ./echo_recent_git_log.sh", returnStdout: true).trim()	
         }
 
         stage("run naisible") {
@@ -86,8 +85,7 @@ node {
 			}
         }
 
-        slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced. See log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
-
+        slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced. ${lastCommit} \nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         if (currentBuild.result == null) {
             currentBuild.result = "SUCCESS"
@@ -97,7 +95,7 @@ node {
             currentBuild.result = "FAILURE"
         }
 
-        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}. See log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}. ${lastCommit}\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         throw e
     }
