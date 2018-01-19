@@ -89,6 +89,7 @@ node {
 
         if (currentBuild.result == null) {
             currentBuild.result = "SUCCESS"
+            currentBuild.description = "${clusterName}"
         }
     } catch (e) {
         if (currentBuild.result == null) {
