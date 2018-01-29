@@ -89,12 +89,16 @@ node {
 
         if (currentBuild.result == null) {
             currentBuild.result = "SUCCESS"
-            currentBuild.description = "User: ${env.USERNAME} - Result: ${clusterName} ok"
+            wrap([$class: 'BuildUser']) {
+              currentBuild.description = "User: ${env.BUILD_USER_ID} - Result: ${clusterName} ok"
+            }
         }
     } catch (e) {
         if (currentBuild.result == null) {
             currentBuild.result = "FAILURE"
-            currentBuild.description = "User: ${env.USERNAME} - Result: ${clusterName} failed"
+            wrap([$class: 'BuildUser']) {
+              currentBuild.description = "User: ${env.BUILD_USER_ID} - Result: ${clusterName} failed"
+            }
         }
 
         slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}. ${lastCommit}\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
