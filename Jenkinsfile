@@ -85,23 +85,23 @@ node {
 			}
         }
 
-        slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced by Mr. ${env.BUILD_USER_LAST_NAME}. ${lastCommit} \nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced by Mr. ${env.BUILD_USER}. ${lastCommit} \nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         if (currentBuild.result == null) {
             currentBuild.result = "SUCCESS"
             wrap([$class: 'BuildUser']) {
-              currentBuild.description = "Mr. ${env.BUILD_USER_LAST_NAME} nsynced: ${clusterName} ok"
+              currentBuild.description = "Mr. ${env.BUILD_USER} nsynced: ${clusterName} ok"
             }
         }
     } catch (e) {
         if (currentBuild.result == null) {
             currentBuild.result = "FAILURE"
             wrap([$class: 'BuildUser']) {
-              currentBuild.description = "Mr. ${env.BUILD_USER_LAST_NAME} nsynced: ${clusterName} failed"
+              currentBuild.description = "Mr. ${env.BUILD_USER} nsynced: ${clusterName} failed"
             }
         }
 
-        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} by Mr. ${env.BUILD_USER_LAST_NAME} failed: ${e.getMessage()}. ${lastCommit}\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} by Mr. ${env.BUILD_USER} failed: ${e.getMessage()}. ${lastCommit}\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         throw e
     }
