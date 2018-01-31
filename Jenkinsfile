@@ -90,14 +90,14 @@ node {
         if (currentBuild.result == null) {
             currentBuild.result = "SUCCESS"
             wrap([$class: 'BuildUser']) {
-              currentBuild.description = "User: ${env.BUILD_USER_ID} - Result: ${clusterName} ok"
+              currentBuild.description = "Mr. ${env.BUILD_USER_LAST_NAME} nsynced: ${clusterName} ok"
             }
         }
     } catch (e) {
         if (currentBuild.result == null) {
             currentBuild.result = "FAILURE"
             wrap([$class: 'BuildUser']) {
-              currentBuild.description = "User: ${env.BUILD_USER_ID} - Result: ${clusterName} failed"
+              currentBuild.description = "Mr. ${env.BUILD_USER_LAST_NAME} nsynced: ${clusterName} failed"
             }
         }
 
