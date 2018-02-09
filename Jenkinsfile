@@ -28,6 +28,10 @@ node {
                 git url: "ssh://git@stash.devillo.no:7999/aura/nais-tpa.git"
             }
 
+            dir("nais-namespace-config") {
+                git url: "ssh://git@stash.devillo.no:7999/aura/nais-namespace-config.git"
+            }
+
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
 			lastCommit = sh(script: "/bin/sh ./echo_recent_git_log.sh", returnStdout: true).trim()	
         }
@@ -41,6 +45,20 @@ node {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/test-playbook.yaml")
         }
 
+        stage("create namespaces and stuff") {
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${clusterName} --context ${clusterName} --namespace nais apply\"")
+            
+            def data = readYaml file: "./nais-namespace-config${clusterName}.yaml"
+            def namespaces =  data.environments.keySet() as List
+            
+            for( namespace in namespaces ) {
+                println "--- Running nais-namespace-config for ${namespace}"
+                sh("sudo docker run -v `pwd`/nais-namespace-config:/root/nais-namespace-config -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-namespace-config/${clusterName} --context ${clusterName} --namespace ${namespace} --env ${namespace} apply\"")
+            }
+        }
+
+           
         stage("update nais platform apps") {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
             sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${clusterName} --context ${clusterName} --namespace nais apply\"")
@@ -50,7 +68,7 @@ node {
             sh("sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-tpa/clusters/${clusterName} --context ${clusterName} --namespace tpa apply\"")
         }
 
-		stage("deploy nais-testapp") {
+        stage("deploy nais-testapp") {
             // wait till naisd is up
 			retry(15) {
 				sleep 5
