@@ -47,15 +47,18 @@ node {
         }
 
         stage("create namespaces and stuff") {
-            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
-            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${clusterName} --context ${clusterName} --namespace nais apply\"")
+            def yamlFile = "./nais-namespace-config${clusterName}.yaml"
+
+            if fileExists yamlFile {
+                 sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+
+                def data = readYaml file: yamlFile
+                def namespaces =  data.environments.keySet() as List
             
-            def data = readYaml file: "./nais-namespace-config${clusterName}.yaml"
-            def namespaces =  data.environments.keySet() as List
-            
-            for( namespace in namespaces ) {
-                println "--- Running nais-namespace-config for ${namespace}"
-                sh("sudo docker run -v `pwd`/nais-namespace-config:/root/nais-namespace-config -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-namespace-config/${clusterName} --context ${clusterName} --namespace ${namespace} --env ${namespace} apply\"")
+                for( namespace in namespaces ) {
+                    println "--- Running nais-namespace-config for ${namespace}"
+                    sh("sudo docker run -v `pwd`/nais-namespace-config:/root/nais-namespace-config -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-namespace-config/${clusterName} --context ${clusterName} --namespace ${namespace} --env ${namespace} apply\"")
+                }
             }
         }
 
