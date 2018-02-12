@@ -9,7 +9,7 @@ node {
 
     try {
         stage("init") {
-            git credentialsId: 'jenkins-github',  url: "https://github.com/navikt/nsync.git"
+            git credentialsId: 'navikt-ci',  url: "https://github.com/navikt/nsync.git"
 
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps")
 
@@ -18,15 +18,15 @@ node {
             }
 
             dir("naisible") {
-                git  credentialsId: 'jenkins-github', url: "https://github.com/nais/naisible.git"
+                git  credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
             }
 
             dir("nais-platform-apps") {
-                git  credentialsId: 'jenkins-github', url: "https://github.com/navikt/nais-platform-apps.git"
+                git  credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-platform-apps.git"
             }
 
             dir("nais-tpa") {
-                git  credentialsId: 'jenkins-github', url: "https://github.com/navikt/nais-tpa.git"
+                git  credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-tpa.git"
             }
 
             dir("nais-namespace-config") {
