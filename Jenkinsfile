@@ -14,7 +14,7 @@ node {
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps")
 
             dir("nais-inventory") {
-                git credentialsId: 'navikt-ci', url: "https://github.com/nais/nais-inventory.git"
+                git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-inventory.git"
             }
 
             dir("naisible") {
