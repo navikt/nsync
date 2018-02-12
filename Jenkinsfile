@@ -9,7 +9,7 @@ node {
 
     try {
         stage("init") {
-            git url: "ssh://git@stash.devillo.no:7999/aura/nsync.git"
+            git url: "https://github.com/navikt/nsync.git"
 
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps")
 
@@ -22,11 +22,11 @@ node {
             }
 
             dir("nais-platform-apps") {
-                git url: "ssh://git@stash.devillo.no:7999/aura/nais-platform-apps.git"
+                git url: "https://github.com/navikt/nais-platform-apps.git"
             }
 
             dir("nais-tpa") {
-                git url: "ssh://git@stash.devillo.no:7999/aura/nais-tpa.git"
+                git url: "https://github.com/navikt/nais-tpa.git"
             }
 
             dir("nais-namespace-config") {
