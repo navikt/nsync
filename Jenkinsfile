@@ -14,19 +14,19 @@ node {
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps")
 
             dir("nais-inventory") {
-                git url: "ssh://git@stash.devillo.no:7999/aura/nais-inventory.git"
+                git credentialsId: 'navikt-ci', url: "https://github.com/nais/nais-inventory.git"
             }
 
             dir("naisible") {
-                git  credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
+                git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
             }
 
             dir("nais-platform-apps") {
-                git  credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-platform-apps.git"
+                git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-platform-apps.git"
             }
 
             dir("nais-tpa") {
-                git  credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-tpa.git"
+                git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-tpa.git"
             }
 
             dir("nais-namespace-config") {
