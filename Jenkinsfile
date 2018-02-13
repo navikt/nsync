@@ -46,7 +46,7 @@ node {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/test-playbook.yaml")
         }
 
-        stage("create namespaces and stuff") {
+        /*stage("create namespaces and stuff") {
             def yamlFile = "./nais-namespace-config/${clusterName}.yaml"
 
             if ( fileExists(yamlFile) ) {
@@ -58,9 +58,10 @@ node {
                 for( namespace in namespaces ) {
                     println "--- Running nais-namespace-config for ${namespace}"
                     sh("sudo docker run -v `pwd`/nais-namespace-config:/root/nais-namespace-config -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-namespace-config/${clusterName} --context ${clusterName} --namespace ${namespace} --env ${namespace} apply\"")
+                    sh("sudo docker run -v `pwd`/nais-namespace-config:/root/nais-namespace-config -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:latest /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-namespace-config/${clusterName} --context ${clusterName} --namespace ${namespace} --env ${namespace} apply\"")
                 }
             }
-        }
+        }*/
 
            
         stage("update nais platform apps") {
