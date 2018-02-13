@@ -47,7 +47,7 @@ node {
         }
 
         stage("create namespaces and stuff") {
-            def yamlFile = "./nais-namespace-config${clusterName}.yaml"
+            def yamlFile = "./nais-namespace-config/${clusterName}.yaml"
 
             if ( fileExists(yamlFile) ) {
                  sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
