@@ -60,6 +60,7 @@ node {
                     sh("sudo docker run -v `pwd`/nais-namespace-config/clusters/:/root/namespaces -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:5.0.0 /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper apply -v --context ${clusterName} --namespace ${namespace} --env ${namespace}  /root/namespaces/${clusterName}.yaml \"")
                 }
             }
+        }
            
         stage("update nais platform apps") {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
