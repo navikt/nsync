@@ -68,7 +68,13 @@ node {
         }
 
         stage("update nais 3rd party apps") {
-            sh("test -d /root/nais-tpa/clusters/${clusterName} && sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply /root/nais-tpa/clusters/${clusterName}/*.yaml\"")
+            sh """
+                if [[ -d /root/nais-tpa/clusters/${clusterName} ]]; then
+                    sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply /root/nais-tpa/clusters/${clusterName}/*.yaml\"
+                else
+                    echo "No third party apps defined for ${clusterName}, skipping"
+                fi
+            """
         }
 
         stage("deploy nais-testapp") {
