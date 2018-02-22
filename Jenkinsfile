@@ -29,10 +29,6 @@ node {
                 git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-tpa.git"
             }
 
-            dir("nais-namespace-config") {
-                git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-namespace-config.git"
-            }
-
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
             lastCommit = sh(script: "/bin/sh ./echo_recent_git_log.sh", returnStdout: true).trim()
         }
