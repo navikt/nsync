@@ -1,7 +1,7 @@
 node {
     def lastCommit, clusterSuffix // metadata
     def clusterName = params.cluster
-    def naiscaperVersion = '5.0.0'
+    def naiscaperVersion = '5.1.0'
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -64,7 +64,7 @@ node {
            
         stage("update nais platform apps") {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
-            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --config-override-file /root/nais-platform-apps/nais.yaml --context ${clusterName} --namespace nais apply /root/nais-platform-apps/clusters/${clusterName}/*.yaml\"")
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
         }
 
         stage("update nais 3rd party apps") {
