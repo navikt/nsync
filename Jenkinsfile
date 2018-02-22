@@ -1,7 +1,7 @@
 node {
     def lastCommit, clusterSuffix // metadata
     def clusterName = params.cluster
-    def naiscaperVersion = '5.1.2'
+    def naiscaperVersion = '5.1.3'
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
