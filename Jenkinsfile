@@ -1,7 +1,7 @@
 node {
     def lastCommit, clusterSuffix // metadata
     def clusterName = params.cluster
-    def naiscaperVersion = '5.0.0'
+    def naiscaperVersion = '5.1.2'
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -48,11 +48,17 @@ node {
           
         stage("update nais platform apps") {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
-            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-platform-apps/clusters/${clusterName} --context ${clusterName} --namespace nais apply\"")
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
         }
 
         stage("update nais 3rd party apps") {
-            sh("sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --dir /root/nais-tpa/clusters/${clusterName} --context ${clusterName} --namespace tpa apply\"")
+            sh """
+                if [[ -d /root/nais-tpa/clusters/${clusterName} ]]; then
+                    sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply /root/nais-tpa/clusters/${clusterName}/*.yaml\"
+                else
+                    echo "No third party apps defined for ${clusterName}, skipping"
+                fi
+            """
         }
 
         stage("deploy nais-testapp") {
