@@ -77,6 +77,14 @@ node {
             """
         }
 
+        stage("install istio") {
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/istio-playbook.yaml")
+        }
+
+        stage("verify istio") {
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/istio-test-playbook.yaml")
+        }
+
         stage("deploy nais-testapp") {
             // wait till naisd is up
             retry(15) {
