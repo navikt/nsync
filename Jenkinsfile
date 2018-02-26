@@ -1,7 +1,7 @@
 node {
     def lastCommit, clusterSuffix // metadata
     def clusterName = params.cluster
-    def naiscaperVersion = '5.0.0'
+    def naiscaperVersion = '5.1.3'
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -29,10 +29,6 @@ node {
                 git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-tpa.git"
             }
 
-            dir("nais-namespace-config") {
-                git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-namespace-config.git"
-            }
-
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
             lastCommit = sh(script: "/bin/sh ./echo_recent_git_log.sh", returnStdout: true).trim()
         }
@@ -45,31 +41,15 @@ node {
             sleep 15 // allow addons to start
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/test-playbook.yaml")
         }
-
-        stage("create and configure namespaces") {
-            def yamlFile = "./nais-namespace-config/clusters/${clusterName}.yaml"
-
-            if ( fileExists(yamlFile) ) {
-                 sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
-
-                def data = readYaml file: yamlFile
-                def namespaces =  data.environments.keySet() as List
-            
-                for( namespace in namespaces ) {
-                    println "--- Running nais-namespace-config for ${namespace}"
-                    sh("sudo docker run -v `pwd`/nais-namespace-config/clusters/:/root/namespaces -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:5.0.0 /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper apply -v --context ${clusterName} --namespace ${namespace} --env ${namespace}  /root/namespaces/${clusterName}.yaml \"")
-                }
-            }
-        }
-           
+          
         stage("update nais platform apps") {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
-            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --config-override-file /root/nais-platform-apps/nais.yaml --context ${clusterName} --namespace nais apply /root/nais-platform-apps/clusters/${clusterName}/*.yaml\"")
+            sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
         }
 
         stage("update nais 3rd party apps") {
             sh """
-                if [[ -d /root/nais-tpa/clusters/${clusterName} ]]; then
+                if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
                     sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply /root/nais-tpa/clusters/${clusterName}/*.yaml\"
                 else
                     echo "No third party apps defined for ${clusterName}, skipping"
