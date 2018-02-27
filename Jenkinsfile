@@ -1,5 +1,5 @@
 node {
-    def lastCommit, clusterSuffix // metadata
+    def clusterSuffix
     def clusterName = params.cluster
     def naiscaperVersion = '5.1.3'
 
@@ -30,7 +30,6 @@ node {
             }
 
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
-            lastCommit = sh(script: "/bin/sh ./echo_recent_git_log.sh", returnStdout: true).trim()
         }
 
         stage("run naisible") {
@@ -100,23 +99,20 @@ node {
             }
         }
 
-        wrap([$class: 'BuildUser']) {
-            slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced by Mr. ${env.BUILD_USER}. ${lastCommit} \nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced. ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
-            if (currentBuild.result == null) {
-                currentBuild.result = "SUCCESS"
-                currentBuild.description = "Mr. ${env.BUILD_USER} nsynced: ${clusterName} ok"
-            }
+        if (currentBuild.result == null) {
+            currentBuild.result = "SUCCESS"
+            currentBuild.description = "${clusterName} ok"
         }
     } catch (e) {
-        wrap([$class: 'BuildUser']) {
-            if (currentBuild.result == null) {
-                currentBuild.result = "FAILURE"
-                currentBuild.description = "Mr. ${env.BUILD_USER} nsynced: ${clusterName} failed"
-            }
 
-            slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} by Mr. ${env.BUILD_USER} failed: ${e.getMessage()}. ${lastCommit}\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        if (currentBuild.result == null) {
+            currentBuild.result = "FAILURE"
+            currentBuild.description = "${clusterName} failed"
         }
+
+        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} by Mr. ${env.BUILD_USER} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         throw e
     }
