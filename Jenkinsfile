@@ -99,7 +99,7 @@ node {
             }
         }
 
-        slackSend channel: '#nais-internal', message: ":nais: ${clusterName} successfully nsynced. ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        slackSend channel: '#nais-internal', color: "good", message: ":nais: ${clusterName} successfully nsynced. ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         if (currentBuild.result == null) {
             currentBuild.result = "SUCCESS"
@@ -112,7 +112,7 @@ node {
             currentBuild.description = "${clusterName} failed"
         }
 
-        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        slackSend channel: '#nais-internal', color: "danger", message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         throw e
     }
