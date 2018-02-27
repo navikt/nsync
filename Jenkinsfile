@@ -112,7 +112,7 @@ node {
             currentBuild.description = "${clusterName} failed"
         }
 
-        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} by Mr. ${env.BUILD_USER} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
+        slackSend channel: '#nais-internal', message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         throw e
     }
