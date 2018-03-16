@@ -1,7 +1,7 @@
 node {
     def clusterSuffix
     def clusterName = params.cluster
-    def naiscaperVersion = '5.1.3'
+    def naiscaperVersion = '6.0.0'
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
