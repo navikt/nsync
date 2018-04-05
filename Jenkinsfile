@@ -49,12 +49,11 @@ node {
 
         stage("fetch kubeconfig for cluster"){
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
-		}
+        }
 
         stage("run naisplater") {
             sh("rm -rf ./out && mkdir -p ./out")
             sh("sudo docker run -v `pwd`/nais-yaml/templates:/templates -v `pwd`/nais-yaml/vars:/vars -v `pwd`/out:/out navikt/naisplater:${naisplaterVersion} /bin/bash -c \"naisplater ${clusterName} /templates /vars /out\"")
-
             sh("sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
         }
           
@@ -114,7 +113,6 @@ node {
             currentBuild.description = "${clusterName} ok"
         }
     } catch (e) {
-
         if (currentBuild.result == null) {
             currentBuild.result = "FAILURE"
             currentBuild.description = "${clusterName} failed"
