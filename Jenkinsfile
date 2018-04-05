@@ -2,6 +2,8 @@ node {
     def clusterSuffix
     def clusterName = params.cluster
     def naiscaperVersion = '6.0.0'
+    def naisplaterVersion = '0.0.0'
+    def kubectlImageTag = 'v1.10.0'
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -11,7 +13,7 @@ node {
         stage("init") {
             git credentialsId: 'navikt-ci',  url: "https://github.com/navikt/nsync.git"
 
-            sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps")
+            sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps nais-yaml")
 
             dir("nais-inventory") {
                 git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-inventory.git"
@@ -29,6 +31,10 @@ node {
                 git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-tpa.git"
             }
 
+            dir("nais-yaml") {
+                git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-yaml.git"
+            }
+
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
@@ -40,9 +46,19 @@ node {
             sleep 15 // allow addons to start
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/test-playbook.yaml")
         }
+
+        stage("fetch kubeconfig for cluster"){
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+		}
+
+        stage("run naisplater") {
+            sh("rm -rf ./out && mkdir -p ./out")
+            sh("sudo docker run -v `pwd`/nais-yaml/templates:/templates -v `pwd`/nais-yaml/vars:/vars -v `pwd`/out:/out navikt/naisplater:${naisplaterVersion} /bin/bash -c \"naisplater ${clusterName} /templates /vars /out\"")
+
+            sh("sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
+        }
           
         stage("update nais platform apps") {
-            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
             sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
         }
 
