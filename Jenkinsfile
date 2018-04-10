@@ -20,7 +20,7 @@ node {
             }
 
             dir("naisible") {
-                git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
+                git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git", branch: 'coreos_based_naisible'
             }
 
             dir("nais-platform-apps") {
