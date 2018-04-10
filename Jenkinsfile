@@ -11,7 +11,7 @@ node {
 
     try {
         stage("init") {
-            git credentialsId: 'navikt-ci',  url: "https://github.com/navikt/nsync.git", branch: 'coreos_dev_test'
+            git credentialsId: 'navikt-ci',  url: "https://github.com/navikt/nsync.git"
 
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps nais-yaml")
 
@@ -20,7 +20,7 @@ node {
             }
 
             dir("naisible") {
-                git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git", branch: 'coreos_based_naisible'
+                git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
             }
 
             dir("nais-platform-apps") {
