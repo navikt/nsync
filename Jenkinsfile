@@ -96,7 +96,6 @@ node {
                 httpRequest consoleLogResponseBody: true,
                             ignoreSslErrors: true,
                             responseHandle: 'NONE',
-                            httpMode: 'DELETE',
                             url: 'https://daemon.' + clusterSuffix + '/deploystatus/default/nais-testapp',
                             validResponseCodes: '404'
 
