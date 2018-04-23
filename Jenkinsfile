@@ -86,7 +86,7 @@ node {
             httpRequest consoleLogResponseBody: true,
                         ignoreSslErrors: true,
                         responseHandle: 'NONE',
-                        httpMode: DELETE,
+                        httpMode: 'DELETE',
                         url: 'https://daemon.' + ${clusterSuffix} + '/app/default/nais-testapp',
                         validResponseCodes: '200'
         }
