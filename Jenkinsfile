@@ -89,8 +89,18 @@ node {
                         httpMode: 'DELETE',
                         url: 'https://daemon.' + clusterSuffix + '/app/default/nais-testapp',
                         validResponseCodes: '200'
-	   //Hack to make sure delete finishes before we deploy again.
-	   sleep 5 
+                        
+	       //Hack to make sure delete finishes before we deploy again.
+	       retry(5) {
+                sleep 5
+                httpRequest consoleLogResponseBody: true,
+                            ignoreSslErrors: true,
+                            responseHandle: 'NONE',
+                            httpMode: 'DELETE',
+                            url: 'https://daemon.' + clusterSuffix + '/deploystatus/default/nais-testapp',
+                            validResponseCodes: '404'
+
+           }
         }
 
         stage("deploy nais-testapp") {
