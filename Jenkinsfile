@@ -91,7 +91,7 @@ node {
                         validResponseCodes: '200'
                         
 	       //Hack to make sure delete finishes before we deploy again.
-	       retry(5) {
+	       retry(15) {
                 sleep 5
                 httpRequest consoleLogResponseBody: true,
                             ignoreSslErrors: true,
