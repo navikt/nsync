@@ -71,6 +71,7 @@ node {
             """
         }
 
+        /*
         stage("delete nais-testapp") {
             // wait till naisd is up
             retry(15) {
@@ -101,6 +102,7 @@ node {
 
            }
         }
+        */
 
         stage("deploy nais-testapp") {
             withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
