@@ -72,6 +72,17 @@ node {
         }
 
         stage("deploy nais-testapp") {
+            // wait until naisd is up
+            retry(15) {
+                sleep 5
+                httpRequest acceptType: 'APPLICATION_JSON',
+                            consoleLogResponseBody: true,
+                            ignoreSslErrors: true,
+                            responseHandle: 'NONE',
+                            url: 'https://daemon.' + clusterSuffix + '/deploystatus/app/nais-testapp',
+                            validResponseCodes: '200,404'
+            }
+
             withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
                 sh "curl --fail https://raw.githubusercontent.com/nais/nais-testapp/master/package.json > ./package.json"
             }
