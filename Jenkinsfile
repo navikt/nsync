@@ -79,7 +79,7 @@ node {
                             consoleLogResponseBody: true,
                             ignoreSslErrors: true,
                             responseHandle: 'NONE',
-                            url: 'https://daemon.' + clusterSuffix + '/deploystatus/app/nais-testapp',
+                            url: 'https://daemon.' + clusterSuffix + '/deploystatus/default/nais-testapp',
                             validResponseCodes: '200,404'
             }
 
