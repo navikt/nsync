@@ -2,7 +2,7 @@ node {
     def clusterSuffix
     def clusterName = params.cluster
     def naiscaperVersion = '8.0.0'
-    def naisplaterVersion = '2.0.0'
+    def naisplaterVersion = '4.0.0'
     def kubectlImageTag = 'v1.10.0'
 
     if (!clusterName?.trim()){
