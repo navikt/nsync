@@ -1,8 +1,8 @@
 node {
     def clusterSuffix
     def clusterName = params.cluster
-    def naiscaperVersion = '6.0.0'
-    def naisplaterVersion = '0.0.0'
+    def naiscaperVersion = '8.0.0'
+    def naisplaterVersion = '2.0.0'
     def kubectlImageTag = 'v1.10.0'
 
     if (!clusterName?.trim()){
@@ -59,7 +59,7 @@ node {
                 sh("sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
             }
         }
-          
+
         stage("update nais platform apps") {
             sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
         }
@@ -74,9 +74,8 @@ node {
             """
         }
 
-        /*
-        stage("delete nais-testapp") {
-            // wait till naisd is up
+        stage("deploy nais-testapp") {
+            // wait until naisd is up
             retry(15) {
                 sleep 5
                 httpRequest acceptType: 'APPLICATION_JSON',
@@ -87,27 +86,6 @@ node {
                             validResponseCodes: '200,404'
             }
 
-            httpRequest consoleLogResponseBody: true,
-                        ignoreSslErrors: true,
-                        responseHandle: 'NONE',
-                        httpMode: 'DELETE',
-                        url: 'https://daemon.' + clusterSuffix + '/app/default/nais-testapp',
-                        validResponseCodes: '200'
-                        
-	       //Hack to make sure delete finishes before we deploy again.
-	       retry(15) {
-                sleep 5
-                httpRequest consoleLogResponseBody: true,
-                            ignoreSslErrors: true,
-                            responseHandle: 'NONE',
-                            url: 'https://daemon.' + clusterSuffix + '/deploystatus/default/nais-testapp',
-                            validResponseCodes: '404'
-
-           }
-        }
-        */
-
-        stage("deploy nais-testapp") {
             withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
                 sh "curl --fail https://raw.githubusercontent.com/nais/nais-testapp/master/package.json > ./package.json"
             }
