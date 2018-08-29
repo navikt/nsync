@@ -1,6 +1,7 @@
 node {
     def clusterSuffix
     def clusterName = params.cluster
+    def naisibleBranch = params.branch
     def naiscaperVersion = '8.0.0'
     def naisplaterVersion = '4.0.0'
     def kubectlImageTag = 'v1.10.0'
@@ -20,7 +21,11 @@ node {
             }
 
             dir("naisible") {
-                git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
+                if (naisibleBranch) {
+                    git credentialsId: 'navikt-ci', branch: naisibleBranch, url: "https://github.com/nais/naisible.git"
+                } else {
+                    git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
+                }
             }
 
             dir("nais-platform-apps") {
@@ -39,7 +44,7 @@ node {
         }
 
         stage("run naisible") {
-            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/setup-playbook.yaml")
+	    sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/setup-playbook.yaml")
         }
 
         stage("test basic functionality") {
@@ -47,7 +52,7 @@ node {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/test-playbook.yaml")
         }
 
-        stage("fetch kubeconfig for cluster"){
+        stage("fetch kubeconfig for cluster") {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
         }
 
