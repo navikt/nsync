@@ -2,9 +2,9 @@ node {
     def clusterSuffix
     def clusterName = params.cluster
     def naisibleBranch = params.branch
-    def naiscaperVersion = '8.0.0'
-    def naisplaterVersion = '4.0.0'
-    def kubectlImageTag = 'v1.10.0'
+    def naiscaperVersion = '10.0.0'
+    def naisplaterVersion = '5.0.0'
+    def kubectlImageTag = 'v1.10.7'
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
