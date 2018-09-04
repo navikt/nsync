@@ -2,7 +2,7 @@ node {
     def clusterSuffix
     def clusterName = params.cluster
     def naisibleBranch = params.branch
-    def naiscaperVersion = '12.0.0'
+    def naiscaperVersion = '9.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.10.7'
 
