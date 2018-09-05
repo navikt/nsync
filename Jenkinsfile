@@ -4,7 +4,7 @@ node {
     def naisibleBranch = params.branch
     def naiscaperVersion = '9.0.0'
     def naisplaterVersion = '6.0.0'
-    def kubectlImageTag = 'v1.10.7
+    def kubectlImageTag = 'v1.10.7'
     def bigip_secrets = [
       [$class: 'VaultSecret', path: 'secret/aura/jenkins', secretValues: [
           [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
