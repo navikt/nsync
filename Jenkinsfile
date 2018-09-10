@@ -50,8 +50,8 @@ node {
 
         stage("run naisible") {
             wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
-	      sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/setup-playbook.yaml")
-            } 
+                sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/setup-playbook.yaml")
+            }
         }
 
         stage("test basic functionality") {
