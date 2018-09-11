@@ -60,7 +60,7 @@ node {
         }
 
         stage("fetch kubeconfig for cluster") {
-            sh("sudo ./ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
         }
 
         stage("run naisplater") {
