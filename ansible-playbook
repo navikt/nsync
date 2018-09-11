@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker run --rm -it \
+docker run --rm -i \
   -v /var/log/ansible/ansible.log \
   -v /var/lib/jenkins/.ssh:/home/jenkins/.ssh \
   -v "$(pwd)"/naisible:/ansible/playbooks \
