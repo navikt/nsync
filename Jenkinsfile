@@ -56,7 +56,7 @@ node {
 
         stage("test basic functionality") {
             sleep 15 // allow addons to start
-            sh("sudo ./ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/test-playbook.yaml")
+            sh("sudo ./ansible-playbook -i inventory/${clusterName} playbooks/test-playbook.yaml")
         }
 
         stage("fetch kubeconfig for cluster") {
