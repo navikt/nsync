@@ -50,13 +50,13 @@ node {
 
         stage("run naisible") {
             wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
-                sh("sudo ./ansible-playbook -i inventory/${clusterName} playbooks/setup-playbook.yaml")
+                sh("sudo -E ./ansible-playbook -i inventory/${clusterName} playbooks/setup-playbook.yaml")
             }
         }
 
         stage("test basic functionality") {
             sleep 15 // allow addons to start
-            sh("sudo ./ansible-playbook -i inventory/${clusterName} playbooks/test-playbook.yaml")
+            sh("sudo -E ./ansible-playbook -i inventory/${clusterName} playbooks/test-playbook.yaml")
         }
 
         stage("fetch kubeconfig for cluster") {
