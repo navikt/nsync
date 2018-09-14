@@ -45,7 +45,7 @@ node {
 
         stage("run naisible") {
             def bigip_secrets = [
-              [$class: 'VaultSecret', path: "secret/aura/jenkins/${clustername}", secretValues: [
+              [$class: 'VaultSecret', path: "secret/aura/jenkins/${clusterName}", secretValues: [
               [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
               [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
             ]
