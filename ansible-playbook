@@ -7,4 +7,4 @@ docker run --rm -i \
   -v "$(pwd)"/nais-inventory:/ansible/inventory \
   -e F5_USER \
   -e F5_PASSWORD \
-  navikt/ansible-playbook:2.5.9 "$@"
+  navikt/ansible-playbook:2.6.4 "$@"
