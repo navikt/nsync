@@ -50,7 +50,7 @@ node {
               [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
             ]
 
-            wrap([$class: 'VaultBuildWrapper', vaultSecrets: bisigip_secrets]) {
+            wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
                 sh("sudo -E ./ansible-playbook -i inventory/${clusterName} playbooks/setup-playbook.yaml")
             }
         }
