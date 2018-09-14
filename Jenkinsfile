@@ -5,11 +5,6 @@ node {
     def naiscaperVersion = '9.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.10.7'
-    def bigip_secrets = [
-      [$class: 'VaultSecret', path: 'secret/aura/jenkins', secretValues: [
-          [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
-          [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
-    ]
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -49,7 +44,13 @@ node {
         }
 
         stage("run naisible") {
-            wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
+            def bigip_secrets = [
+              [$class: 'VaultSecret', path: "secret/aura/jenkins/${clustername}", secretValues: [
+              [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
+              [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
+            ]
+
+            wrap([$class: 'VaultBuildWrapper', vaultSecrets: bisigip_secrets]) {
                 sh("sudo -E ./ansible-playbook -i inventory/${clusterName} playbooks/setup-playbook.yaml")
             }
         }
