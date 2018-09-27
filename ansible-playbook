@@ -1,6 +1,7 @@
 #!/bin/bash
 
 docker run --rm -i \
+  --ulimit nofile=100000:100000 \
   -v /var/log/ansible/ansible.log \
   -v /var/lib/jenkins/.ssh:/home/jenkins/.ssh \
   -v "$(pwd)"/naisible:/ansible/playbooks \
