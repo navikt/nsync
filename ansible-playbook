@@ -6,6 +6,7 @@ docker run --rm -i \
   -v /var/lib/jenkins/.ssh:/home/jenkins/.ssh \
   -v "$(pwd)"/naisible:/ansible/playbooks \
   -v "$(pwd)"/nais-inventory:/ansible/inventory \
+  -e ANSIBLE_PIPELINING=1 \
   -e F5_USER \
   -e F5_PASSWORD \
   navikt/ansible-playbook:2.6.4 "$@"
