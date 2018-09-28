@@ -61,7 +61,7 @@ node {
         }
 
         stage("fetch kubeconfig for cluster") {
-            sh("ansible-playbook --key-file=/home/jenkins/.ssh/id_rsa -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
         }
 
         stage("run naisplater") {
