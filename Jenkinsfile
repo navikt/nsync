@@ -51,17 +51,17 @@ node {
             ]
 
             wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
-                sh("sudo -E ./ansible-playbook -f 20 -i inventory/${clusterName} playbooks/setup-playbook.yaml")
+                sh("sudo -E ./ansible-playbook -f 20 --key-file=/var/lib/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
             }
         }
 
         stage("test basic functionality") {
             sleep 15 // allow addons to start
-            sh("sudo -E ./ansible-playbook -f 20 -i inventory/${clusterName} playbooks/test-playbook.yaml")
+            sh("sudo -E ./ansible-playbook -f 20 --key-file=/var/lib/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/test-playbook.yaml")
         }
 
         stage("fetch kubeconfig for cluster") {
-            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+            sh("ansible-playbook --key-file=/var/lib/jenkins/.ssh/id_rsa -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
         }
 
         stage("run naisplater") {
