@@ -11,4 +11,4 @@ docker run --rm -i \
   -e ANSIBLE_CONFIG=/ansible.cfg \
   -e F5_USER \
   -e F5_PASSWORD \
-  navikt/ansible-playbook:2.6.4.1 "$@"
+  navikt/ansible-playbook:2.4.6.1 "$@"
