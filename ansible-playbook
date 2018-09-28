@@ -2,7 +2,7 @@
 
 docker run --rm -i \
   --ulimit nofile=1048576:1048576 \
-  -u jenkins:jenkins \
+  -u 993:992 \
   -v /var/log/ansible/ansible.log \
   -v /var/lib/jenkins/.ssh:/var/lib/jenkins/.ssh \
   -v "$(pwd)"/naisible:/ansible/playbooks \
