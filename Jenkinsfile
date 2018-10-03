@@ -45,7 +45,7 @@ node {
         }
 
         stage("start monitoring of nais-testapp") {
-            monitorId = sh(script: "curl -s https://uptimed.${clusterSuffix}/start?interval=1&timeout=900&endpoint=https://nais-testapp.${clusterSuffix}/healthcheck", returnStdout: true).trim()
+            monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?interval=1&timeout=900&endpoint=https://nais-testapp.${clusterSuffix}/healthcheck", returnStdout: true).trim()
         }
 
         stage("run naisible") {
@@ -128,7 +128,7 @@ node {
         }
 
         stage("stop monitoring and get results of nais-testapp monitoring") {
-            sh("curl -s https://uptimed." + clusterSuffix + "/stop/" + monitorId)
+            sh("curl -s -X POST https://uptimed." + clusterSuffix + "/stop/" + monitorId)
 
 
         }
