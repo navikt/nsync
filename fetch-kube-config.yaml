@@ -1,13 +1,16 @@
----
 - hosts: localhost
   tasks:
   - name: Ensure kube directory exists
-    file: state=directory path={{cluster_name}}
+    file:
+      state: directory
+      path: "{{ cluster_name }}"
 
 - hosts: masters
   user: deployer
   become: yes
   tasks:
-
-  - name: fetch cluster-admin from master
-    fetch: src=/etc/kubernetes/kubeconfigs/cluster-admin.conf dest={{cluster_name}}/config flat=yes
+  - name: Fetch cluster-admin from master
+    fetch:
+      src: /etc/kubernetes/kubeconfigs/cluster-admin.conf
+      dest: "{{ cluster_name }}/config"
+      flat: yes
