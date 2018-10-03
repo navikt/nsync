@@ -43,8 +43,12 @@ node {
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
+        stage("start monitoring of nais-testapp") {
+            monitorId = sh("curl -s https://uptimed.nais." + clusterSuffix + "/start?interval=1&timeout=900&endpoint=https://nais-testapp." + clusterSuffix + "/healthcheck")
+        }
+
         stage("run naisible") {
-	    sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/setup-playbook.yaml")
+    	    sh("ansible-playbook -i ./nais-inventory/${clusterName} ./naisible/setup-playbook.yaml")
         }
 
         stage("test basic functionality") {
@@ -112,6 +116,12 @@ node {
                             url: 'https://nais-testapp.' + clusterSuffix + '/healthcheck',
                             validResponseCodes: '200'
             }
+        }
+
+        stage("stop monitoring and get results of nais-testapp monitoring") {
+            sh("curl -s https://uptimed.nais." + clusterSuffix + "/stop/" + monitorId)
+
+
         }
 
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
