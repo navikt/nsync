@@ -1,5 +1,6 @@
 node {
     def clusterSuffix
+    def monitorId
     def clusterName = params.cluster
     def naisibleBranch = params.branch
     def naiscaperVersion = '9.0.0'
@@ -44,7 +45,7 @@ node {
         }
 
         stage("start monitoring of nais-testapp") {
-            monitorId = sh("curl -s https://uptimed.nais." + clusterSuffix + "/start?interval=1&timeout=900&endpoint=https://nais-testapp." + clusterSuffix + "/healthcheck")
+            monitorId = sh("curl -s https://uptimed." + clusterSuffix + "/start?interval=1&timeout=900&endpoint=https://nais-testapp." + clusterSuffix + "/healthcheck")
         }
 
         stage("run naisible") {
@@ -127,7 +128,7 @@ node {
         }
 
         stage("stop monitoring and get results of nais-testapp monitoring") {
-            sh("curl -s https://uptimed.nais." + clusterSuffix + "/stop/" + monitorId)
+            sh("curl -s https://uptimed." + clusterSuffix + "/stop/" + monitorId)
 
 
         }
