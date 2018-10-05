@@ -1,6 +1,6 @@
 node {
     def clusterSuffix
-//    def monitorId
+    def monitorId
     def clusterName = params.cluster
     def naisibleBranch = params.branch
     def naiscaperVersion = '9.0.0'
@@ -44,10 +44,15 @@ node {
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
-//        stage("start monitoring of nais-testapp") {
-//            monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?interval=1&timeout=900&endpoint=https://nais-testapp.${clusterSuffix}/healthcheck", returnStdout: true).trim()
-//            sh("echo ${monitorId}")
-//        }
+        stage("start monitoring of nais-testapp") {
+            monitorId = sh(script: "curl -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/healthcheck&interval=1&timeout=900", returnStdout: true).trim()
+
+            sh """
+                if [[ "${monitorId}" == "" ]]; then
+                    echo "No monitoring will be done for nais-testapp, could not start monitor"
+                fi
+            """
+        }
 
         stage("run naisible") {
             def bigip_secrets = [
@@ -128,10 +133,10 @@ node {
             }
         }
 
-//        stage("stop monitoring and get results of nais-testapp monitoring") {
-//            result = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
-//            sh("echo ${result}")
-//        }
+        stage("stop monitoring and get results of nais-testapp monitoring") {
+            result = sh(script: "curl -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
+            sh("echo ${result}")
+        }
 
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
