@@ -135,7 +135,6 @@ node {
 
         stage("stop monitoring and get results of nais-testapp monitoring") {
             result = sh(script: "curl -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
-            sh("echo ${result}")
         }
 
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
