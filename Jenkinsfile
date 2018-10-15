@@ -45,7 +45,7 @@ node {
         }
 
         stage("start monitoring of nais-testapp") {
-            monitorId = sh(script: "curl -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/healthcheck&interval=1&timeout=900", returnStdout: true).trim()
+            monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/healthcheck&interval=1&timeout=900", returnStdout: true).trim()
 
             sh """
                 if [[ "${monitorId}" == "" ]]; then
@@ -134,9 +134,9 @@ node {
         }
 
         stage("stop monitoring and get results of nais-testapp monitoring") {
-            result = sh(script: "curl -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
+            result = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
             if ("100.00" != result) {
-               error("nais-testapp uptime was ${result} percent during nsync of ${clusterName}")
+               error("nais-testapp uptime was not 100% during nsync of ${clusterName}. Response from uptimed was: ${result}")
             }
         }
 
