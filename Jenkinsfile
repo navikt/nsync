@@ -45,7 +45,7 @@ node {
         }
 
         stage("start monitoring of nais-testapp") {
-            monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/healthcheck&interval=1&timeout=900", returnStdout: true).trim()
+            monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/isalive&interval=1&timeout=900", returnStdout: true).trim()
 
             sh """
                 if [[ "${monitorId}" == "" ]]; then
