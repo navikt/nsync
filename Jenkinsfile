@@ -136,7 +136,7 @@ node {
         stage("stop monitoring and get results of nais-testapp monitoring") {
             result = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
             if ("100.00" != result) {
-               error("nais-testapp uptime was not 100% during nsync of ${clusterName}. Response from uptimed was: ${result}")
+               error("nais-testapp did not respond all ok during nsync of ${clusterName}. Response from uptimed was: ${result}")
             }
         }
 
