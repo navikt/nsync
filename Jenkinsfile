@@ -47,10 +47,7 @@ node {
 
         stage("start monitoring of nais-testapp") {
             sh("rm -rf ./out && mkdir -p ./out")
-            uptimedVersionFromPod = sh(script: "sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
-            if (uptimedVersionFromPod.isInteger()) {
-                uptimedVersionFromPod = uptimedVersionFromPod.toInteger()
-            }
+            uptimedVersionFromPod = sh(script: "sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim().toInteger()
             uptimedVersionNaisYaml = sh(script: "cat nais-yaml/vars/uptimed.yaml | cut -d: -f2", returnStdout: true).trim().toInteger()
             masterNode = sh(script: "cat nais-inventory/${clusterName} | awk '/masters/{getline;print}'", returnStdout: true).trim()
             doesMasterHaveApiServer = sh(script: "nc -w 2 ${masterNode} 6443 </dev/null; echo \$?", returnStdout: true).trim().toInteger()
