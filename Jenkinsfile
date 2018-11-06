@@ -70,32 +70,28 @@ node {
         }
 
         stage("run naisible") {
-            when {
-              expression {
-                return !params.skipNaisible
+            if (params.skipNaisible) {
+              echo '[SKIPPING] naisible setup playbook'
+            } else {
+              def bigip_secrets = [
+                [$class: 'VaultSecret', path: "secret/aura/jenkins/${clusterName}", secretValues: [
+                [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
+                [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
+              ]
+
+              wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
+                  sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
               }
-            }
-
-            def bigip_secrets = [
-              [$class: 'VaultSecret', path: "secret/aura/jenkins/${clusterName}", secretValues: [
-              [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
-              [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
-            ]
-
-            wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
-                sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
             }
         }
 
         stage("test basic functionality") {
-            when {
-              expression {
-                return !params.skipNaisible
-              }
+            if (params.skipNaisible) {
+              echo '[SKIPPING] naisible test playbook'
+            } else {
+              sleep 15 // allow addons to start
+              sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/test-playbook.yaml")
             }
-
-            sleep 15 // allow addons to start
-            sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/test-playbook.yaml")
         }
 
         stage("run naisplater") {
