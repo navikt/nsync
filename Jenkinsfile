@@ -45,6 +45,10 @@ node {
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
+        stage("fetch kubeconfig for cluster") {
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+        }
+
         stage("start monitoring of nais-testapp") {
             sh("rm -rf ./out && mkdir -p ./out")
             uptimedVersionFromPod = sh(script: "sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
@@ -80,10 +84,6 @@ node {
         stage("test basic functionality") {
             sleep 15 // allow addons to start
             sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/test-playbook.yaml")
-        }
-
-        stage("fetch kubeconfig for cluster") {
-            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
         }
 
         stage("run naisplater") {
