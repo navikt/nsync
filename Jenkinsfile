@@ -70,6 +70,12 @@ node {
         }
 
         stage("run naisible") {
+            when {
+              expression {
+                return !params.skipNaisible
+              }
+            }
+
             def bigip_secrets = [
               [$class: 'VaultSecret', path: "secret/aura/jenkins/${clusterName}", secretValues: [
               [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
@@ -82,6 +88,12 @@ node {
         }
 
         stage("test basic functionality") {
+            when {
+              expression {
+                return !params.skipNaisible
+              }
+            }
+
             sleep 15 // allow addons to start
             sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/test-playbook.yaml")
         }
