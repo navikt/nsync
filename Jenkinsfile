@@ -16,7 +16,7 @@ node {
         stage("init") {
             git credentialsId: 'navikt-ci',  url: "https://github.com/navikt/nsync.git"
 
-            sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps nais-yaml")
+            sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps nais-yaml ca-certificates")
 
             dir("nais-inventory") {
                 git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-inventory.git"
@@ -42,11 +42,21 @@ node {
                 git credentialsId: 'navikt-ci', url: "https://github.com/navikt/nais-yaml.git"
             }
 
+            dir("ca-certificates") {
+                git credentialsId: 'navikt-ci', url: "https://github.com/navikt/ca-certificates.git"
+            }
+
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
         stage("fetch kubeconfig for cluster") {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+        }
+
+        stage("apply certificate bundle") {
+            sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ prod")
+            sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
+            // TODO: apply generated configmap.yaml to all environments
         }
 
         stage("start monitoring of nais-testapp") {
