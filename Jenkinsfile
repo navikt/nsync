@@ -90,7 +90,8 @@ node {
               ]
 
               wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
-                  sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
+                  // --skip-tags bigip can be removed 2018-11-19
+                  sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml --skip-tags bigip")
               }
             }
         }
