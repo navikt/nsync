@@ -110,7 +110,7 @@ node {
         stage("apply certificate bundle") {
             sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ prod")
             sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
-            namespaces = sh(script: "sudo docker run -v `pwd`/nais-yaml/vars/${clusterName}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}'", returnStdout: true).trim()
+            namespaces = sh(script: "sudo docker run -v `pwd`/nais-yaml/vars/${clusterName}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}'", returnStdout: true)
             namespaces.eachLine {
                 // Use of --force is required because we cannot use `kubectl apply`, due to
                 // the binary part of the ConfigMap being too big to save in annotations.
