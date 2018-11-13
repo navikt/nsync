@@ -5,7 +5,7 @@ node {
     def naisibleBranch = params.branch
     def naiscaperVersion = '9.0.0'
     def naisplaterVersion = '6.0.0'
-    def kubectlImageTag = 'v1.10.7'
+    def kubectlImageTag = 'v1.11.4'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
 
     if (!clusterName?.trim()){
