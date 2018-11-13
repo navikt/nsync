@@ -56,7 +56,7 @@ node {
         stage("apply certificate bundle") {
             sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ prod")
             sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
-            namespaces = sh(script: "sudo docker run -v `pwd`/ca-certificates:/workdir mikefarah/yq:2.1.2 yq r vars/${clusterName}/namespaces.yaml 'namespaces.*.name' | awk '{print $2}'", returnStdout: true).trim()
+            namespaces = sh(script: "sudo docker run -v `pwd`/ca-certificates:/workdir mikefarah/yq:2.1.2 yq r vars/${clusterName}/namespaces.yaml 'namespaces.*.name' | awk '{print \$2}'", returnStdout: true).trim()
             println "These are the commands I would run:"
             for (ns in namespaces) {
                 def cmd = "kubectl replace --namespace ${ns} -f ./ca-certificates/configmap.yaml"
