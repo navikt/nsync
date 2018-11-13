@@ -3,6 +3,8 @@ node {
     def monitorId
     def clusterName = params.cluster
     def naisibleBranch = params.branch
+    def skipUptimed = params.skipUptimed
+    def skipNaisible = params.skipNaisible
     def naiscaperVersion = '9.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.11.4'
@@ -54,27 +56,30 @@ node {
         }
 
         stage("start monitoring of nais-testapp") {
-            sh("rm -rf ./out && mkdir -p ./out")
-            uptimedVersionFromPod = sh(script: "sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
-            if (uptimedVersionFromPod.isInteger()) {
-                uptimedVersionFromPod = uptimedVersionFromPod.toInteger()
-            } 
-            uptimedVersionNaisYaml = sh(script: "cat nais-yaml/vars/uptimed.yaml | cut -d: -f2", returnStdout: true).trim().toInteger()
-            masterNode = sh(script: "cat nais-inventory/${clusterName} | awk '/masters/{getline;print}'", returnStdout: true).trim()
-            doesMasterHaveApiServer = sh(script: "nc -w 2 ${masterNode} 6443 </dev/null; echo \$?", returnStdout: true).trim().toInteger()
-            if (uptimedVersionNaisYaml <= uptimedVersionFromPod && doesMasterHaveApiServer == 0) {
-                monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/isalive&interval=1&timeout=900", returnStdout: true).trim()
-
-                sh """
-                    if [[ "${monitorId}" == "" ]]; then
-                        echo "No monitoring will be done for nais-testapp, could not start monitor"
-                    fi
-                """
+            if (skipUptimed) {
+                echo '[SKIPPING] skipping monitoring of nais-testapp'
+            } else {
+                sh("rm -rf ./out && mkdir -p ./out")
+                uptimedVersionFromPod = sh(script: "sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
+                if (uptimedVersionFromPod.isInteger()) {
+                    uptimedVersionFromPod = uptimedVersionFromPod.toInteger()
+                }
+                uptimedVersionNaisYaml = sh(script: "cat nais-yaml/vars/uptimed.yaml | cut -d: -f2", returnStdout: true).trim().toInteger()
+                masterNode = sh(script: "cat nais-inventory/${clusterName} | awk '/masters/{getline;print}'", returnStdout: true).trim()
+                doesMasterHaveApiServer = sh(script: "nc -w 2 ${masterNode} 6443 </dev/null; echo \$?", returnStdout: true).trim().toInteger()
+                if (uptimedVersionNaisYaml <= uptimedVersionFromPod && doesMasterHaveApiServer == 0) {
+                    monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/isalive&interval=1&timeout=900", returnStdout: true).trim()
+                    sh """
+                        if [[ "${monitorId}" == "" ]]; then
+                            echo "No monitoring will be done for nais-testapp, could not start monitor"
+                        fi
+                    """
+                }
             }
         }
 
         stage("run naisible") {
-            if (params.skipNaisible) {
+            if (skipNaisible) {
               echo '[SKIPPING] naisible setup playbook'
             } else {
               def bigip_secrets = [
@@ -91,7 +96,7 @@ node {
         }
 
         stage("test basic functionality") {
-            if (params.skipNaisible) {
+            if (skipNaisible) {
               echo '[SKIPPING] naisible test playbook'
             } else {
               sleep 15 // allow addons to start
@@ -170,12 +175,16 @@ node {
         }
 
         stage("stop monitoring and get results of nais-testapp monitoring") {
-            if (uptimedVersionNaisYaml <= uptimedVersionFromPod && doesMasterHaveApiServer == 0) {
-                result = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
-                if ("100.00" != result) {
-                    error("nais-testapp did not respond all ok during nsync of ${clusterName}. Response from uptimed was: ${result}")
+            if (skipUptimed) {
+                echo '[SKIPPING] skipping monitoring of nais-testapp'
+            } else {
+                if (uptimedVersionNaisYaml <= uptimedVersionFromPod && doesMasterHaveApiServer == 0) {
+                    result = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
+                    if ("100.00" != result) {
+                        error("nais-testapp did not respond all ok during nsync of ${clusterName}. Response from uptimed was: ${result}")
+                    }
                 }
-            }
+	    }
         }
 
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
