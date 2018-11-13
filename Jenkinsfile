@@ -113,7 +113,11 @@ node {
         }
 
         stage("apply certificate bundle") {
-            sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ prod")
+            def nav_cert_env = "prod"
+            if (clusterName.startsWith("preprod-") || clusterName.startsWith("dev-")) {
+                nav_cert_env = "all"
+            }
+            sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
             sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
             // Use of --force is required because we cannot use `kubectl apply`, due to
             // the binary part of the ConfigMap being too big to save in annotations.
