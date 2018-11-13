@@ -58,8 +58,10 @@ node {
             sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
             namespaces = sh(script: "sudo docker run -v `pwd`/nais-yaml/vars/${clusterName}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}'", returnStdout: true).trim()
             println "These are the commands I would run:"
-            for (ns in namespaces) {
-                def cmd = "kubectl replace --namespace ${ns} -f ./ca-certificates/configmap.yaml"
+            namespaces.eachLine {
+                // Use of --force is required because we cannot use `kubectl apply`, due to
+                // the binary part of the ConfigMap being too big to save in annotations.
+                def cmd = "kubectl replace --force --namespace ${it} --filename ./ca-certificates/configmap.yaml"
                 println cmd
             }
         }
