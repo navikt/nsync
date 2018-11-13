@@ -60,7 +60,7 @@ node {
             namespaces.eachLine {
                 // Use of --force is required because we cannot use `kubectl apply`, due to
                 // the binary part of the ConfigMap being too big to save in annotations.
-                def cmd = "replace --force --namespace ${it} --filename ./ca-certificates/configmap.yaml"
+                def cmd = "replace --force --namespace ${it} --filename /workdir/configmap.yaml"
                 sh("sudo docker run -v `pwd`/ca-certificates:/workdir -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} ${cmd}")
             }
         }
