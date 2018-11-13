@@ -53,18 +53,6 @@ node {
             sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
         }
 
-        stage("apply certificate bundle") {
-            sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ prod")
-            sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
-            namespaces = sh(script: "sudo docker run -v `pwd`/nais-yaml/vars/${clusterName}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}'", returnStdout: true).trim()
-            namespaces.eachLine {
-                // Use of --force is required because we cannot use `kubectl apply`, due to
-                // the binary part of the ConfigMap being too big to save in annotations.
-                def cmd = "replace --force --namespace ${it} --filename /workdir/configmap.yaml"
-                sh("sudo docker run -v `pwd`/ca-certificates:/workdir -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} ${cmd}")
-            }
-        }
-
         stage("start monitoring of nais-testapp") {
             sh("rm -rf ./out && mkdir -p ./out")
             uptimedVersionFromPod = sh(script: "sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
@@ -116,6 +104,18 @@ node {
                 sh("rm -rf ./out && mkdir -p ./out")
                 sh("sudo docker run -v `pwd`/nais-yaml/templates:/templates -v `pwd`/nais-yaml/vars:/vars -v `pwd`/out:/out navikt/naisplater:${naisplaterVersion} /bin/bash -c \"naisplater ${clusterName} /templates /vars /out ${ENC_KEY}\"")
                 sh("sudo docker run -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
+            }
+        }
+
+        stage("apply certificate bundle") {
+            sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ prod")
+            sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
+            namespaces = sh(script: "sudo docker run -v `pwd`/nais-yaml/vars/${clusterName}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}'", returnStdout: true).trim()
+            namespaces.eachLine {
+                // Use of --force is required because we cannot use `kubectl apply`, due to
+                // the binary part of the ConfigMap being too big to save in annotations.
+                def cmd = "replace --force --namespace ${it} --filename /workdir/configmap.yaml"
+                sh("sudo docker run -v `pwd`/ca-certificates:/workdir -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} ${cmd}")
             }
         }
 
