@@ -117,6 +117,18 @@ node {
             if (clusterName.startsWith("preprod-") || clusterName.startsWith("dev-")) {
                 nav_cert_env = "all"
             }
+            // Update CA bundle from the Mozilla database
+            sh("""
+                cd ca-certificates
+                curl --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
+                sha256sum --check cacert.pem.sha256
+                if [ $? -ne 0 ]; then
+                    curl --remote-name https://curl.haxx.se/ca/cacert.pem
+                    sha256sum --check cacert.pem.sha256 || exit 1
+                    git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
+                    git push
+                fi
+            """)
             sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
             sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
             // Use of --force is required because we cannot use `kubectl apply`, due to
