@@ -120,10 +120,10 @@ node {
             // Update CA bundle from the Mozilla database
             sh("""
                 cd ca-certificates
-                curl --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
+                curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
                 sha256sum --check cacert.pem.sha256
                 if [ \$? -ne 0 ]; then
-                    curl --remote-name https://curl.haxx.se/ca/cacert.pem
+                    curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem
                     sha256sum --check cacert.pem.sha256 || exit 1
                     git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
                     git push
@@ -168,13 +168,13 @@ node {
             }
 
             withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
-                sh "curl --fail https://raw.githubusercontent.com/nais/nais-testapp/master/package.json > ./package.json"
+                sh "curl --ipv4 --fail https://raw.githubusercontent.com/nais/nais-testapp/master/package.json > ./package.json"
             }
 
             def releaseVersion = sh(script: "node -pe 'require(\"./package.json\").version'", returnStdout: true).trim()
 
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'srvauraautodeploy', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                sh "curl --fail -k -d \'{\"application\": \"nais-testapp\", \"version\": \"${releaseVersion}\", \"fasitEnvironment\": \"ci\", \"zone\": \"fss\", \"fasitUsername\": \"${env.USERNAME}\", \"fasitPassword\": \"${env.PASSWORD}\", \"namespace\": \"default\", \"manifesturl\": \"https://raw.githubusercontent.com/nais/nais-testapp/master/nais.yaml\"}\' https://daemon.${clusterSuffix}/deploy"
+                sh "curl --ipv4 --fail -k -d \'{\"application\": \"nais-testapp\", \"version\": \"${releaseVersion}\", \"fasitEnvironment\": \"ci\", \"zone\": \"fss\", \"fasitUsername\": \"${env.USERNAME}\", \"fasitPassword\": \"${env.PASSWORD}\", \"namespace\": \"default\", \"manifesturl\": \"https://raw.githubusercontent.com/nais/nais-testapp/master/nais.yaml\"}\' https://daemon.${clusterSuffix}/deploy"
             }
         }
 
