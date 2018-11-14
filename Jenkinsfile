@@ -120,12 +120,14 @@ node {
             // Update CA bundle from the Mozilla database
             withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
                 sh("""
+                    set +e
                     cd ca-certificates
                     curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
                     sha256sum --check cacert.pem.sha256
                     if [ \$? -ne 0 ]; then
                         curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem
                         sha256sum --check cacert.pem.sha256 || exit 1
+                        set -e
                         git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
                         git push
                     fi
