@@ -122,7 +122,7 @@ node {
                 cd ca-certificates
                 curl --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
                 sha256sum --check cacert.pem.sha256
-                if [ $? -ne 0 ]; then
+                if [ \$? -ne 0 ]; then
                     curl --remote-name https://curl.haxx.se/ca/cacert.pem
                     sha256sum --check cacert.pem.sha256 || exit 1
                     git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
