@@ -118,17 +118,19 @@ node {
                 nav_cert_env = "all"
             }
             // Update CA bundle from the Mozilla database
-            sh("""
-                cd ca-certificates
-                curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
-                sha256sum --check cacert.pem.sha256
-                if [ \$? -ne 0 ]; then
-                    curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem
-                    sha256sum --check cacert.pem.sha256 || exit 1
-                    git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
-                    git push
-                fi
-            """)
+            withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
+                sh("""
+                    cd ca-certificates
+                    curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
+                    sha256sum --check cacert.pem.sha256
+                    if [ \$? -ne 0 ]; then
+                        curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem
+                        sha256sum --check cacert.pem.sha256 || exit 1
+                        git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
+                        git push
+                    fi
+                """)
+            }
             sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
             sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
             // Use of --force is required because we cannot use `kubectl apply`, due to
