@@ -129,7 +129,7 @@ node {
                         sha256sum --check cacert.pem.sha256 || exit 1
                         set -e
                         git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
-                        git push
+                        git push --set-upstream origin master
                     fi
                 """)
             }
