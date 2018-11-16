@@ -119,19 +119,31 @@ node {
             }
             // Update CA bundle from the Mozilla database
             withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
-                sh("""
-                    set +e
-                    cd ca-certificates
-                    curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
-                    sha256sum --check cacert.pem.sha256
-                    if [ \$? -ne 0 ]; then
-                        curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem
-                        sha256sum --check cacert.pem.sha256 || exit 1
-                        set -e
-                        git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
-                        git push --set-upstream origin master
-                    fi
-                """)
+                withCredentials([[
+                        $class: 'UsernamePasswordMultiBinding',
+                        credentialsId: 'navikt-ci',
+                        usernameVariable: 'GIT_USERNAME',
+                        passwordVariable: 'GIT_PASSWORD'
+                ]]) {
+                    sh("""
+                        cd ca-certificates
+                        set +e
+                        curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
+                        sha256sum --check cacert.pem.sha256
+                        if [ \$? -ne 0 ]; then
+                            curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem
+                            sha256sum --check cacert.pem.sha256 || exit 1
+                            set -e
+                            helper=`mktemp`
+                            echo "echo username=\${GIT_USERNAME}" >> \$helper
+                            echo "echo password=\${GIT_PASSWORD}" >> \$helper
+                            git config credential.helper "/bin/bash \$helper"
+                            git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
+                            git push --set-upstream origin master
+                            rm -f \$helper
+                        fi
+                    """)
+                }
             }
             sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
             sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
