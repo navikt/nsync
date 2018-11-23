@@ -51,10 +51,6 @@ node {
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
         }
 
-        stage("fetch kubeconfig for cluster") {
-            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
-        }
-
         stage("start monitoring of nais-testapp") {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
@@ -101,6 +97,10 @@ node {
               sleep 15 // allow addons to start
               sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/test-playbook.yaml")
             }
+        }
+
+        stage("fetch kubeconfig for cluster") {
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
         }
 
         stage("run naisplater") {
