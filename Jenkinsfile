@@ -16,7 +16,7 @@ node {
 
     try {
         stage("init") {
-            git credentialsId: 'navikt-ci',  url: "https://github.com/navikt/nsync.git"
+            git url: "https://github.com/navikt/nsync.git"
 
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps nais-yaml ca-certificates")
 
@@ -26,9 +26,9 @@ node {
 
             dir("naisible") {
                 if (naisibleBranch) {
-                    git credentialsId: 'navikt-ci', branch: naisibleBranch, url: "https://github.com/nais/naisible.git"
+                    git branch: naisibleBranch, url: "https://github.com/nais/naisible.git"
                 } else {
-                    git credentialsId: 'navikt-ci', url: "https://github.com/nais/naisible.git"
+                    git url: "https://github.com/nais/naisible.git"
                 }
             }
 
