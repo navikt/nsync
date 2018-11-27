@@ -21,7 +21,7 @@ node {
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps nais-yaml ca-certificates")
 
             dir("nais-inventory") {
-                git credentialsId: 'nais-inventory', url: "git@nais-inventory:navikt/nais-inventory.git"
+                git credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git"
             }
 
             dir("naisible") {
@@ -37,15 +37,15 @@ node {
             }
 
             dir("nais-tpa") {
-                git credentialsId: 'nais-tpa', url: "https://github.com/navikt/nais-tpa.git"
+                git credentialsId: 'nais-tpa', url: "git@github.com:navikt/nais-tpa.git"
             }
 
             dir("nais-yaml") {
-                git credentialsId: 'nais-yaml', url: "https://github.com/navikt/nais-yaml.git"
+                git credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git"
             }
 
             dir("ca-certificates") {
-                git credentialsId: 'ca-certificates', url: "https://github.com/navikt/ca-certificates.git"
+                git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git"
             }
 
             clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
