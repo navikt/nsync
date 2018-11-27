@@ -33,7 +33,7 @@ node {
             }
 
             dir("nais-platform-apps") {
-                git credentialsId: 'nais-platform-apps', url: "https://github.com/navikt/nais-platform-apps.git"
+                git credentialsId: 'nais-platform-apps', url: "git@nais-platform-apps:navikt/nais-platform-apps.git"
             }
 
             dir("nais-tpa") {
