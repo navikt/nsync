@@ -47,7 +47,7 @@ node {
     }
 
     stage("fetch kubeconfig for ${cluster}") {
-      sh("ansible-playbook -i ./nais-inventory/${cluster} ./fetch-kube-config.yaml")
+      sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
     }
 
     stage("apply certificate bundle in ${cluster}") {
@@ -58,13 +58,13 @@ node {
       sh("""
         namespaces=\$(sudo docker run -v \$(pwd)/nais-yaml/vars/${cluster}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}')
         while read -r namespace; do
-          sudo docker run -v \$(pwd)/ca-certificates:/workdir -v \$(pwd)/${cluster}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} replace --force --namespace \${namespace} --filename /workdir/configmap.yaml
+          sudo docker run -v \$(pwd)/ca-certificates:/workdir -v \$(pwd)/nsync/${cluster}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} replace --force --namespace \${namespace} --filename /workdir/configmap.yaml
         done <<< "\${namespaces}"
       """)
     }
 
     stage("Removing ${cluster} kubeconfig") {
-      sh("rm ${cluster}")
+      sh("rm -r ./nsync/${cluster}")
     }
   }
 }
