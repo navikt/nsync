@@ -111,51 +111,6 @@ node {
             }
         }
 
-        stage("apply certificate bundle") {
-            def nav_cert_env = "prod"
-            if (clusterName.startsWith("preprod-") || clusterName.startsWith("dev-")) {
-                nav_cert_env = "all"
-            }
-            // Update CA bundle from the Mozilla database
-            withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
-                withCredentials([[
-                        $class: 'UsernamePasswordMultiBinding',
-                        credentialsId: 'navikt-ci',
-                        usernameVariable: 'GIT_USERNAME',
-                        passwordVariable: 'GIT_PASSWORD'
-                ]]) {
-                    sh("""
-                        cd ca-certificates
-                        set +e
-                        curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem.sha256
-                        sha256sum --check cacert.pem.sha256
-                        if [ \$? -ne 0 ]; then
-                            curl --ipv4 --remote-name https://curl.haxx.se/ca/cacert.pem
-                            sha256sum --check cacert.pem.sha256 || exit 1
-                            set -e
-                            helper=`mktemp`
-                            echo "echo username=\${GIT_USERNAME}" >> \$helper
-                            echo "echo password=\${GIT_PASSWORD}" >> \$helper
-                            git config credential.helper "/bin/bash \$helper"
-                            git commit cacert.pem -m "CA certificates automatically updated to upstream [skip ci]"
-                            git push --set-upstream origin master
-                            rm -f \$helper
-                        fi
-                    """)
-                }
-            }
-            sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
-            sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
-            // Use of --force is required because we cannot use `kubectl apply`, due to
-            // the binary part of the ConfigMap being too big to save in annotations.
-            sh("""
-                namespaces=\$(sudo docker run -v \$(pwd)/nais-yaml/vars/${clusterName}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}')
-                while read -r namespace; do
-                    sudo docker run -v \$(pwd)/ca-certificates:/workdir -v \$(pwd)/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} replace --force --namespace \${namespace} --filename /workdir/configmap.yaml
-                done <<< "\${namespaces}"
-            """)
-        }
-
         stage("update nais platform apps") {
             sh("sudo docker run -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
         }
