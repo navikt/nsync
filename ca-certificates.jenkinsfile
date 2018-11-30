@@ -50,7 +50,7 @@ node {
       sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
     }
 
-    stage("apply certificate bundle in ${cluster}") {
+    stage("apply certificate bundle to ${cluster}") {
       sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
       sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
       // Use of --force is required because we cannot use `kubectl apply`, due to
