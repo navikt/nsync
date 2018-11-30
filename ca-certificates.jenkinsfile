@@ -4,16 +4,20 @@ node {
   def environments = ['nais-ci', 'nais-dev', 'preprod-fss', 'preprod-sbs', 'prod-fss', 'prod-sbs']
 
   stage("Git clone repos") {
+    dir("nsync") {
+      git(url: "git@github.com:navikt/nsync.git")
+    }
+
     dir("ca-certificates") {
-      git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git"
+      git(credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git")
     }
 
     dir("nais-inventory") {
-      git credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git"
+      git(credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git")
     }
 
     dir("nais-yaml") {
-      git credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git"
+	git(credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git")
     }
   }
 
