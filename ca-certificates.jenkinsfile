@@ -47,6 +47,10 @@ node {
 	nav_cert_env = "all"
       }
 
+      stage("kyrre tester") {
+	sh("echo 'hello ${cluster}")
+      }
+
       stage("fetch kubeconfig for ${cluster}") {
 	sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
       }
