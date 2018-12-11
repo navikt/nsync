@@ -6,7 +6,7 @@ node {
   try {
     stage("Git clone repos") {
       dir("nsync") {
-	git(url: "git@github.com:navikt/nsync.git")
+	git(url: "https://github.com/navikt/nsync.git")
       }
 
       dir("ca-certificates") {
