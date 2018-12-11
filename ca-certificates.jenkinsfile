@@ -6,25 +6,25 @@ node {
   try {
     stage("Git clone repos") {
       dir("nsync") {
-	git(url: "https://github.com/navikt/nsync.git")
+        git(url: "https://github.com/navikt/nsync.git")
       }
 
       dir("ca-certificates") {
-	git(credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git")
+        git(credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git")
       }
 
       dir("nais-inventory") {
-	git(credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git")
+        git(credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git")
       }
 
       dir("nais-yaml") {
-	git(credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git")
+        git(credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git")
       }
     }
 
     stage("Downloading, checking, and commiting new certificates") {
       withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
-	sshagent(['ca-certificates']) {
+        sshagent(['ca-certificates']) {
           sh("""
             set +e
             cd ca-certificates
@@ -38,29 +38,25 @@ node {
               git push origin master
             fi
           """)
-	}
+        }
       }
     }
 
     environments.each { cluster ->
       if (cluster.startsWith("preprod-") || cluster.startsWith("dev-")) {
-	nav_cert_env = "all"
-      }
-
-      stage("kyrre tester") {
-	sh("echo 'hello ${cluster}")
+        nav_cert_env = "all"
       }
 
       stage("fetch kubeconfig for ${cluster}") {
-	sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
+        sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
       }
 
       stage("apply certificate bundle to ${cluster}") {
-	sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
-	sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
-	// Use of --force is required because we cannot use `kubectl apply`, due to
-	// the binary part of the ConfigMap being too big to save in annotations.
-	sh("""
+        sh("./ca-certificates/install-certs.sh ./ca-certificates/nav-cert-bundle/ ${nav_cert_env}")
+        sh("cat ./ca-certificates/cacert.pem ./ca-certificates/nav-cert-bundle/* | ./ca-certificates/mk-k8s-cm.sh > ./ca-certificates/configmap.yaml")
+        // Use of --force is required because we cannot use `kubectl apply`, due to
+        // the binary part of the ConfigMap being too big to save in annotations.
+        sh("""
           namespaces=\$(sudo docker run -v \$(pwd)/nais-yaml/vars/${cluster}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}')
           while read -r namespace; do
             sudo docker run -v \$(pwd)/ca-certificates:/workdir -v \$(pwd)/nsync/${cluster}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} replace --force --namespace \${namespace} --filename /workdir/configmap.yaml
@@ -69,20 +65,20 @@ node {
       }
 
       stage("Removing ${cluster} kubeconfig") {
-	sh("rm -r ./nsync/${cluster}")
+        sh("rm -r ./nsync/${cluster}")
       }
     }
   } catch (e) {
     if (currentBuild.result == null) {
       currentBuild.result = "FAILURE"
-      currentBuild.description = "${cluster} failed"
+      currentBuild.description = "ca-certificates failed"
     }
 
     slackSend(channel: '#nais-ci',
-	      color: "danger",
-	      message: ":shit: ca-certificates failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}",
-	      teamDomain: 'nav-it',
-	      tokenCredentialId: 'slack_fasit_frontend')
+      color: "danger",
+      message: ":shit: ca-certificates failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}",
+      teamDomain: 'nav-it',
+      tokenCredentialId: 'slack_fasit_frontend')
 
     throw e
   }
