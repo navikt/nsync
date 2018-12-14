@@ -7,7 +7,7 @@ node {
     def skipNaisible = params.skipNaisible
     def naiscaperVersion = '9.0.0'
     def naisplaterVersion = '6.0.0'
-    def kubectlImageTag = 'v1.11.4'
+    def kubectlImageTag = 'v1.12.3'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
 
     if (!clusterName?.trim()){
