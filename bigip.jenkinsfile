@@ -1,0 +1,54 @@
+node {
+  def environments = ['nais-ci', 'nais-dev', 'preprod-fss', 'preprod-sbs', 'prod-fss', 'prod-sbs']
+
+  try {
+    stage("Git clone repos") {
+      dir("nsync") {
+        git(url: "https://github.com/navikt/nsync.git")
+      }
+
+      dir("naisible") {
+        git(url: "git@github.com:nais/naisible.git")
+      }
+
+      dir("nais-inventory") {
+        git(credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git")
+      }
+    }
+
+    environments.each { cluster ->
+      stage("fetch kubeconfig for ${cluster}") {
+        sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
+      }
+
+      stage("run naisible") {
+        def bigip_secrets = [
+          [$class: 'VaultSecret', path: "secret/aura/jenkins/${cluster}", secretValues: [
+              [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
+              [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
+        ]
+
+        wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
+          sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${cluster} playbooks/setup-bigip.yaml")
+        }
+      }
+
+      stage("Removing ${cluster} kubeconfig") {
+        sh("rm -r ./nsync/${cluster}")
+      }
+    }
+  } catch (e) {
+    if (currentBuild.result == null) {
+      currentBuild.result = "FAILURE"
+      currentBuild.description = "bigip-naisible failed"
+    }
+
+    slackSend(channel: '#nais-ci',
+      color: "danger",
+      message: ":shit: bigip-naisible failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}",
+      teamDomain: 'nav-it',
+      tokenCredentialId: 'slack_fasit_frontend')
+
+    throw e
+  }
+}
