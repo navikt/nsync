@@ -5,7 +5,7 @@ node {
     def naisibleBranch = params.branch
     def skipUptimed = params.skipUptimed
     def skipNaisible = params.skipNaisible
-    def naiscaperVersion = '9.0.0'
+    def naiscaperVersion = '30.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.12.3'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
