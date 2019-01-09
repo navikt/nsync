@@ -17,7 +17,7 @@ node {
     }
 
     environments.each { cluster ->
-      stage("run bigip pool updater") {
+      stage("run bigip pool updater for ${cluster}") {
         def bigip_secrets = [
           [$class: 'VaultSecret', path: "secret/aura/jenkins/${cluster}", secretValues: [
               [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
