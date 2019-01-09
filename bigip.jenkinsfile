@@ -17,11 +17,7 @@ node {
     }
 
     environments.each { cluster ->
-      stage("fetch kubeconfig for ${cluster}") {
-        sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
-      }
-
-      stage("run naisible") {
+      stage("run bigip pool updater") {
         def bigip_secrets = [
           [$class: 'VaultSecret', path: "secret/aura/jenkins/${cluster}", secretValues: [
               [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
@@ -31,10 +27,6 @@ node {
         wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
           sh("sudo -E ./nsync/ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${cluster} playbooks/setup-bigip.yaml")
         }
-      }
-
-      stage("Removing ${cluster} kubeconfig") {
-        sh("rm -r ./nsync/${cluster}")
       }
     }
   } catch (e) {
