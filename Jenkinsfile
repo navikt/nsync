@@ -68,6 +68,7 @@ node {
                     sh """
                         if [[ "${monitorId}" == "" ]]; then
                             echo "No monitoring will be done for nais-testapp, could not start monitor"
+			    exit 1
                         fi
                     """
                 }
