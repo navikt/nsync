@@ -37,7 +37,7 @@ node {
 
     slackSend(channel: '#nais-ci',
       color: "danger",
-      message: ":shit: bigip-naisible failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}",
+      message: "<!subteam^SB8KS4WAV|nais-vakt> bigip-naisible failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}",
       teamDomain: 'nav-it',
       tokenCredentialId: 'slack_fasit_frontend')
 
