@@ -79,15 +79,7 @@ node {
             if (skipNaisible) {
               echo '[SKIPPING] naisible setup playbook'
             } else {
-              def bigip_secrets = [
-                [$class: 'VaultSecret', path: "secret/aura/jenkins/${clusterName}", secretValues: [
-                [$class: 'VaultSecretValue', envVar: 'F5_USER', vaultKey: 'F5_USER'],
-                [$class: 'VaultSecretValue', envVar: 'F5_PASSWORD', vaultKey: 'F5_PASSWORD']]],
-              ]
-
-              wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
-                  sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
-              }
+              sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
             }
         }
 
