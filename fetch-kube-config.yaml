@@ -9,6 +9,10 @@
   user: deployer
   become: yes
   tasks:
+  - name: Ensure clean directory
+    file:
+      path: "{{ cluster_name }}/config"
+      state: absent
   - name: Fetch cluster-admin from master
     fetch:
       src: /etc/kubernetes/kubeconfigs/cluster-admin.conf
