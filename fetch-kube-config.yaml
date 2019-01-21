@@ -4,15 +4,15 @@
     file:
       state: directory
       path: "{{ cluster_name }}"
+  - name: Ensure clean directory
+    file:
+      path: "{{ cluster_name }}/config"
+      state: absent
 
 - hosts: masters
   user: deployer
   become: yes
   tasks:
-  - name: Ensure clean directory
-    file:
-      path: "{{ cluster_name }}/config"
-      state: absent
   - name: Fetch cluster-admin from master
     fetch:
       src: /etc/kubernetes/kubeconfigs/cluster-admin.conf
