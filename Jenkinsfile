@@ -111,7 +111,7 @@ node {
         stage("update nais 3rd party apps") {
             sh """
                 if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
-                    sudo docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply /root/nais-tpa/clusters/${clusterName}/*.yaml\"
+                    sudo timeout 10m docker run -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa --wait apply /root/nais-tpa/clusters/${clusterName}/*.yaml\"
                 else
                     echo "No third party apps defined for ${clusterName}, skipping"
                 fi
