@@ -79,7 +79,17 @@ node {
             if (skipNaisible) {
               echo '[SKIPPING] naisible setup playbook'
             } else {
-              sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
+              def vcenter_secrets = [
+                [$class: 'VaultSecret', path: "secret/aura/jenkins/vcenter", secretValues: [
+                    [$class: 'VaultSecretValue', envVar: 'VCENTER_USERNAME', vaultKey: 'USERNAME'],
+                    [$class: 'VaultSecretValue', envVar: 'VCENTER_PASSWORD', vaultKey: 'PASSWORD']
+                  ]
+                ]
+              ]
+
+              wrap([$class: 'VaultBuildWrapper', vaultSecrets: vcenter_secrets]) {
+                sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
+              }
             }
         }
 
