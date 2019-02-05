@@ -68,7 +68,7 @@ node {
                     sh """
                         if [[ "${monitorId}" == "" ]]; then
                             echo "No monitoring will be done for nais-testapp, could not start monitor"
-			    exit 1
+                            exit 1
                         fi
                     """
                 }
@@ -79,15 +79,15 @@ node {
             if (skipNaisible) {
               echo '[SKIPPING] naisible setup playbook'
             } else {
-              def vcenter_secrets = [
-                [$class: 'VaultSecret', path: "secret/aura/jenkins/vcenter", secretValues: [
+              def vsphere_secrets = [
+                [$class: 'VaultSecret', path: "secret/aura/jenkins/vsphere", secretValues: [
                     [$class: 'VaultSecretValue', envVar: 'VSPHERE_USERNAME', vaultKey: 'USERNAME'],
                     [$class: 'VaultSecretValue', envVar: 'VSPHERE_PASSWORD', vaultKey: 'PASSWORD']
                   ]
                 ]
               ]
 
-              wrap([$class: 'VaultBuildWrapper', vaultSecrets: vcenter_secrets]) {
+              wrap([$class: 'VaultBuildWrapper', vaultSecrets: vsphere_secrets]) {
                 sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
               }
             }
@@ -173,7 +173,7 @@ node {
                         error("nais-testapp did not respond all ok during nsync of ${clusterName}. Response from uptimed was: ${result}")
                     }
                 }
-	    }
+            }
         }
 
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
