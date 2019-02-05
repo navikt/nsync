@@ -81,8 +81,8 @@ node {
             } else {
               def vcenter_secrets = [
                 [$class: 'VaultSecret', path: "secret/aura/jenkins/vcenter", secretValues: [
-                    [$class: 'VaultSecretValue', envVar: 'VCENTER_USERNAME', vaultKey: 'USERNAME'],
-                    [$class: 'VaultSecretValue', envVar: 'VCENTER_PASSWORD', vaultKey: 'PASSWORD']
+                    [$class: 'VaultSecretValue', envVar: 'VSPHERE_USERNAME', vaultKey: 'USERNAME'],
+                    [$class: 'VaultSecretValue', envVar: 'VSPHERE_PASSWORD', vaultKey: 'PASSWORD']
                   ]
                 ]
               ]
