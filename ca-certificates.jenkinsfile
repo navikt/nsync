@@ -1,7 +1,12 @@
 node {
   def kubectlImageTag = 'v1.11.4'
   def nav_cert_env = "prod"
-  def environments = ['nais-ci', 'nais-dev', 'preprod-fss', 'preprod-sbs', 'prod-fss', 'prod-sbs']
+  def environments = ['nais-ci', 'preprod-fss', 'preprod-sbs', 'prod-fss', 'prod-sbs']
+  
+  if {params.cluster) {
+    environments = params.cluster.split(',')
+  }
+  
 
   try {
     stage("Git clone repos") {
