@@ -3,7 +3,7 @@ node {
   def nav_cert_env = "prod"
   def environments = ['nais-ci', 'preprod-fss', 'preprod-sbs', 'prod-fss', 'prod-sbs']
   
-  if {params.cluster) {
+  if (params.cluster) {
     environments = params.cluster.split(',')
   }
   
