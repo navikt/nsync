@@ -48,7 +48,7 @@ node {
                 git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git"
             }
 
-            clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
+            clusterSuffix = (readYaml file: "./nais-inventory/${clusterName}-vars.yaml").cluster_lb_suffix
         }
 
         stage("start monitoring of nais-testapp") {
