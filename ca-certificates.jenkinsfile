@@ -53,7 +53,7 @@ node {
       }
 
       stage("fetch kubeconfig for ${cluster}") {
-        sh("ansible-playbook -i ./nais-inventory/${cluster} ./nais-inventory/${cluster}-vars.yaml -e  ./nsync/fetch-kube-config.yaml")
+        sh("ansible-playbook -i ./nais-inventory/${cluster} ./nsync/fetch-kube-config.yaml")
       }
 
       stage("apply certificate bundle to ${cluster}") {
