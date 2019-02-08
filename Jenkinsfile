@@ -48,7 +48,8 @@ node {
                 git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git"
             }
 
-            clusterSuffix = (readYaml file: "./nais-inventory/${clusterName}-vars.yaml").cluster_lb_suffix
+            def inventory_vars = readYaml file: "./nais-inventory/${clusterName}-vars.yaml"
+            clusterSuffix = inventory_vars.cluster_lb_suffix
         }
 
         stage("start monitoring of nais-testapp") {
