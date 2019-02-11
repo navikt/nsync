@@ -48,7 +48,8 @@ node {
                 git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git"
             }
 
-            clusterSuffix = sh(script: "grep 'cluster_lb_suffix' ./nais-inventory/${clusterName} | cut -d'=' -f2", returnStdout: true).trim()
+            def inventory_vars = readYaml file: "./nais-inventory/${clusterName}-vars.yaml"
+            clusterSuffix = inventory_vars.cluster_lb_suffix
         }
 
         stage("start monitoring of nais-testapp") {
@@ -88,7 +89,7 @@ node {
               ]
 
               wrap([$class: 'VaultBuildWrapper', vaultSecrets: vsphere_secrets]) {
-                sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/setup-playbook.yaml")
+                sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e inventory/${clusterName}-vars.yaml playbooks/setup-playbook.yaml")
               }
             }
         }
@@ -98,12 +99,12 @@ node {
               echo '[SKIPPING] naisible test playbook'
             } else {
               sleep 15 // allow addons to start
-              sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} playbooks/test-playbook.yaml")
+              sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e inventory/${clusterName}-vars.yaml playbooks/test-playbook.yaml")
             }
         }
 
         stage("fetch kubeconfig for cluster") {
-            sh("ansible-playbook -i ./nais-inventory/${clusterName} ./fetch-kube-config.yaml")
+            sh("ansible-playbook -i ./nais-inventory/${clusterName} -e ./nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
         }
 
         stage("run naisplater") {
