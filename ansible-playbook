@@ -1,5 +1,4 @@
 #!/bin/bash
-
 docker run --rm -i \
   --ulimit nofile=1048576:1048576 \
   -u jenkins:jenkins \

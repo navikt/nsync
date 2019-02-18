@@ -57,7 +57,7 @@ node {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
             } else {
                 sh("rm -rf ./out && mkdir -p ./out")
-                uptimedVersionFromPod = sh(script: "sudo docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
+                uptimedVersionFromPod = sh(script: "docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
                 if (uptimedVersionFromPod.isInteger()) {
                     uptimedVersionFromPod = uptimedVersionFromPod.toInteger()
                 }
@@ -89,7 +89,7 @@ node {
               ]
 
               wrap([$class: 'VaultBuildWrapper', vaultSecrets: vsphere_secrets]) {
-                sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/setup-playbook.yaml")
+                sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/setup-playbook.yaml")
               }
             }
         }
@@ -99,7 +99,7 @@ node {
               echo '[SKIPPING] naisible test playbook'
             } else {
               sleep 15 // allow addons to start
-              sh("sudo -E ./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/test-playbook.yaml")
+              sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/test-playbook.yaml")
             }
         }
 
@@ -110,19 +110,19 @@ node {
         stage("run naisplater") {
             withCredentials([string(credentialsId: 'encryption_key', variable: 'ENC_KEY')]) {
                 sh("rm -rf ./out && mkdir -p ./out")
-                sh("sudo docker run --rm -v `pwd`/nais-yaml/templates:/templates -v `pwd`/nais-yaml/vars:/vars -v `pwd`/out:/out navikt/naisplater:${naisplaterVersion} /bin/bash -c \"naisplater ${clusterName} /templates /vars /out ${ENC_KEY}\"")
-                sh("sudo docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
+                sh("docker run --rm -v `pwd`/nais-yaml/templates:/templates -v `pwd`/nais-yaml/vars:/vars -v `pwd`/out:/out navikt/naisplater:${naisplaterVersion} /bin/bash -c \"naisplater ${clusterName} /templates /vars /out ${ENC_KEY}\"")
+                sh("docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
             }
         }
 
         stage("update nais platform apps") {
-            sh("sudo docker run --rm -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
+            sh("docker run --rm -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
         }
 
         stage("update nais 3rd party apps") {
             sh """
                 if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
-                    sudo docker run --rm -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply --wait --wait-timeout 10m /root/nais-tpa/clusters/${clusterName}/*.yaml\"
+                    docker run --rm -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply --wait --wait-timeout 10m /root/nais-tpa/clusters/${clusterName}/*.yaml\"
                 else
                     echo "No third party apps defined for ${clusterName}, skipping"
                 fi

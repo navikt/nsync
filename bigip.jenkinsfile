@@ -25,7 +25,7 @@ node {
         ]
 
         wrap([$class: 'VaultBuildWrapper', vaultSecrets: bigip_secrets]) {
-          sh("sudo -E ./nsync/ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${cluster} -e @inventory/${cluster}-vars.yaml playbooks/bigip-playbook.yaml")
+          sh("./nsync/ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${cluster} -e @inventory/${cluster}-vars.yaml playbooks/bigip-playbook.yaml")
         }
       }
     }
