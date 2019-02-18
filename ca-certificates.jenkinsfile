@@ -62,9 +62,9 @@ node {
         // Use of --force is required because we cannot use `kubectl apply`, due to
         // the binary part of the ConfigMap being too big to save in annotations.
         sh("""
-          namespaces=\$(sudo docker run -v \$(pwd)/nais-yaml/vars/${cluster}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}')
+          namespaces=\$(sudo docker run --rm -v \$(pwd)/nais-yaml/vars/${cluster}:/workdir mikefarah/yq:2.1.2 yq r namespaces.yaml 'namespaces.*.name' | awk '{print \$2}')
           while read -r namespace; do
-            sudo docker run -v \$(pwd)/ca-certificates:/workdir -v \$(pwd)/nsync/${cluster}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} replace --force --namespace \${namespace} --filename /workdir/configmap.yaml
+            sudo docker run --rm -v \$(pwd)/ca-certificates:/workdir -v \$(pwd)/nsync/${cluster}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} replace --force --namespace \${namespace} --filename /workdir/configmap.yaml
           done <<< "\${namespaces}"
         """)
       }
