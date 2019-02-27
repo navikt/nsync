@@ -16,36 +16,36 @@ node {
 
     try {
         stage("init") {
-            git url: "https://github.com/navikt/nsync.git"
+            git url: "https://github.com/navikt/nsync.git", changelog: false
 
             sh("rm -rf naisible nais-inventory nais-tpa nais-platform-apps nais-yaml ca-certificates")
 
             dir("nais-inventory") {
-                git credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git"
+                git credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git", changelog: false
             }
 
             dir("naisible") {
                 if (naisibleBranch) {
-                    git branch: naisibleBranch, url: "https://github.com/nais/naisible.git"
+                    git branch: naisibleBranch, url: "https://github.com/nais/naisible.git", changelog: false
                 } else {
-                    git url: "https://github.com/nais/naisible.git"
+                    git url: "https://github.com/nais/naisible.git", changelog: false
                 }
             }
 
             dir("nais-platform-apps") {
-                git credentialsId: 'nais-platform-apps', url: "git@github.com:navikt/nais-platform-apps.git"
+                git credentialsId: 'nais-platform-apps', url: "git@github.com:navikt/nais-platform-apps.git", changelog: false
             }
 
             dir("nais-tpa") {
-                git credentialsId: 'nais-tpa', url: "git@github.com:navikt/nais-tpa.git"
+                git credentialsId: 'nais-tpa', url: "git@github.com:navikt/nais-tpa.git", changelog: false
             }
 
             dir("nais-yaml") {
-                git credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git"
+                git credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git", changelog: false
             }
 
             dir("ca-certificates") {
-                git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git"
+                git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git", changelog: false
             }
 
             def inventory_vars = readYaml file: "./nais-inventory/${clusterName}-vars.yaml"
