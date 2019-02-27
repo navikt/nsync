@@ -56,6 +56,7 @@ node {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
             } else {
+                sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
                 sh("rm -rf ./out && mkdir -p ./out")
                 uptimedVersionFromPod = sh(script: "docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
                 if (uptimedVersionFromPod.isInteger()) {
