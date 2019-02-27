@@ -53,7 +53,7 @@ node {
         }
 
         stage("pause reboots from reboot-coordinator") {
-            sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} kubectl annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
+            sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
         }
 
         stage("start monitoring of nais-testapp") {
@@ -183,7 +183,7 @@ node {
         }
 
         stage("resume reboots from reboot-coordinator") {
-            sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} kubectl annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=false")
+            sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=false")
         }
 
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
