@@ -9,6 +9,9 @@ node {
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.12.3'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
+    def kubectl(cmd) {
+        sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} kubectl ${cmd}")
+    }
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -50,6 +53,10 @@ node {
 
             def inventory_vars = readYaml file: "./nais-inventory/${clusterName}-vars.yaml"
             clusterSuffix = inventory_vars.cluster_lb_suffix
+        }
+
+        stage("pause reboots from reboot-coordinator") {
+            kubectl("annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
         }
 
         stage("start monitoring of nais-testapp") {
@@ -178,12 +185,17 @@ node {
             }
         }
 
+        stage("resume reboots from reboot-coordinator") {
+            kubectl("annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
+        }
+
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
         if (currentBuild.result == null) {
             currentBuild.result = "SUCCESS"
             currentBuild.description = "${clusterName} ok"
         }
+
     } catch (e) {
         if (currentBuild.result == null) {
             currentBuild.result = "FAILURE"
