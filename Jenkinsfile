@@ -52,6 +52,10 @@ node {
             clusterSuffix = inventory_vars.cluster_lb_suffix
         }
 
+        stage("fetch kubeconfig for cluster") {
+            sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
+        }
+
         stage("pause reboots from reboot-coordinator") {
             sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
         }
@@ -60,7 +64,6 @@ node {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
             } else {
-                sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
                 sh("rm -rf ./out && mkdir -p ./out")
                 uptimedVersionFromPod = sh(script: "docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
                 if (uptimedVersionFromPod.isInteger()) {
@@ -106,10 +109,6 @@ node {
               sleep 15 // allow addons to start
               sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/test-playbook.yaml")
             }
-        }
-
-        stage("fetch kubeconfig for cluster") {
-            sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
         }
 
         stage("run naisplater") {
