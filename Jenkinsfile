@@ -53,12 +53,18 @@ node {
         }
 
         stage("pause reboots from reboot-coordinator") {
-            sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
+            if (fileExists("${clusterName}/config")) {
+              sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
+            } else {
+              echo 'Skipping stage because no kubeconfig was found.'
+            }
         }
 
         stage("start monitoring of nais-testapp") {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
+            } else if (!fileExists("${clusterName}/config")) {
+                echo 'Skipping stage because no kubeconfig was found.'
             } else {
                 sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
                 sh("rm -rf ./out && mkdir -p ./out")
