@@ -63,7 +63,7 @@ node {
         stage("start monitoring of nais-testapp") {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
-            } else if (!fileExists("${clusterName}/config")) {
+            } else if (!fileExists("${clusterName}/config")) {
                 echo 'Skipping stage because no kubeconfig was found.'
             } else {
                 sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
