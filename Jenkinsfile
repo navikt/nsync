@@ -6,6 +6,8 @@ node {
     def skipUptimed = params.skipUptimed
     def skipNaisible = params.skipNaisible
     def naiscaperVersion = '31.0.0'
+    def naiscaperDryRunVersion = '32.0.0'
+    def bashscaperVersion = '1.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.12.3'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
@@ -134,6 +136,36 @@ node {
             sh """
                 if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
                     docker run --rm -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply --wait --wait-timeout 10m /root/nais-tpa/clusters/${clusterName}/*.yaml\"
+                else
+                    echo "No third party apps defined for ${clusterName}, skipping"
+                fi
+            """
+        }
+
+        stage("update nais platform apps (dry-run)") {
+            sh("""docker run --rm \
+                    -v naiscaper-output:/naiscaper/output \
+                    -v `pwd`/nais-platform-apps/base:/naiscaper/input/base:ro \
+                    -v `pwd`/nais-platform-apps/clusters/${clusterName}:/naiscaper/input/overrides:ro \
+                    navikt/naiscaper:${naiscaperDryRunVersion} \
+                    /bin/bash -c \"naiscaper /naiscaper/input/base /naiscaper/input/overrides /naiscaper/output\"""")
+
+            sh("""docker run --rm \
+                    -v naiscaper-output:/apply \
+                    -v `pwd`/${clusterName}:/root/.kube \
+                    navikt/bashscaper:${bashscaperVersion} \
+                    /bin/bash -c \"/usr/bin/helm repo update && bashscaper nais ${clusterName} /apply/*.yaml\"""")
+            sh("docker volume rm naiscaper-output")
+        }
+
+        stage("update nais 3rd party apps (dry-run)") {
+            sh """
+                if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
+                    docker run --rm \
+                      -v `pwd`/nais-tpa/clusters/${clusterName}:/apply \
+                      -v `pwd`/${clusterName}:/root/.kube \
+                      navikt/bashscaper:${bashscaperVersion} \
+                      /bin/bash -c \"/usr/bin/helm repo update && bashscaper tpa ${clusterName} /apply/*.yaml\"
                 else
                     echo "No third party apps defined for ${clusterName}, skipping"
                 fi
