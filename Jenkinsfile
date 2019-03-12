@@ -6,7 +6,7 @@ node {
     def skipUptimed = params.skipUptimed
     def skipNaisible = params.skipNaisible
     def naiscaperVersion = '31.0.0'
-    def naiscaperDryRunVersion = '32.0.0'
+    def naiscaperDryRunVersion = '33.0.0'
     def bashscaperVersion = '1.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.12.3'
