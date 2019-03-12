@@ -155,7 +155,6 @@ node {
                     -v `pwd`/${clusterName}:/root/.kube \
                     navikt/bashscaper:${bashscaperVersion} \
                     /bin/bash -c \"/usr/bin/helm repo update && bashscaper nais ${clusterName} /apply/*.yaml\"""")
-            sh("docker volume rm naiscaper-output")
         }
 
         stage("update nais 3rd party apps (dry-run)") {
