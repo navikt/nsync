@@ -8,7 +8,7 @@ node {
     def naiscaperVersion = '31.0.0'
     def naiscaperDryRunVersion = '33.0.0'
     def useBashscaper = params.useBashscaper
-    def bashscaperVersion = '4.0.0'
+    def bashscaperVersion = '6.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.12.3'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
