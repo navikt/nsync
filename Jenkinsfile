@@ -133,7 +133,7 @@ node {
             if (useBashscaper) {
               sh """
                   docker run --rm \
-                    -v naiscaper-output:/naiscaper/output \
+                    -v `pwd`/naiscaper-output:/naiscaper/output \
                     -v `pwd`/nais-platform-apps/base:/naiscaper/input/base:ro \
                     -v `pwd`/nais-platform-apps/clusters/${clusterName}:/naiscaper/input/overrides:ro \
                     navikt/naiscaper:${naiscaperDryRunVersion} \
@@ -142,7 +142,7 @@ node {
 
               sh """
                   docker run --rm \
-                    -v naiscaper-output:/apply \
+                    -v `pwd`/naiscaper-output:/apply \
                     -v `pwd`/${clusterName}:/root/.kube \
                     navikt/bashscaper:${bashscaperVersion} \
                     /bin/bash -c \"/usr/bin/helm repo update && bashscaper nais ${clusterName} /apply/*.yaml\"
