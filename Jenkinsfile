@@ -6,9 +6,9 @@ node {
     def skipUptimed = params.skipUptimed
     def skipNaisible = params.skipNaisible
     def naiscaperVersion = '31.0.0'
-    def naiscaperDryRunVersion = '33.0.0'
+    def naiscaperDryRunVersion = '34.0.0'
     def useBashscaper = params.useBashscaper
-    def bashscaperVersion = '6.0.0'
+    def bashscaperVersion = '7.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.12.3'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
