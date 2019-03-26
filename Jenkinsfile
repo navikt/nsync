@@ -5,10 +5,8 @@ node {
     def naisibleBranch = params.branch
     def skipUptimed = params.skipUptimed
     def skipNaisible = params.skipNaisible
-    def naiscaperVersion = '31.0.0'
-    def naiscaperDryRunVersion = '34.0.0'
-    def useBashscaper = params.useBashscaper
-    def bashscaperVersion = '7.0.0'
+    def naiscaperVersion = '34.0.0'
+    def bashscaperVersion = '12.0.0'
     def naisplaterVersion = '6.0.0'
     def kubectlImageTag = 'v1.12.3'
     def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
@@ -57,7 +55,7 @@ node {
 
         stage("pause reboots from reboot-coordinator") {
             if (fileExists("${clusterName}/config")) {
-              sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true")
+              sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true || true")
             } else {
               echo 'Skipping stage because no kubeconfig was found.'
             }
@@ -130,85 +128,38 @@ node {
         }
 
         stage("update nais platform apps") {
-            if (useBashscaper) {
-              sh """
-                  docker run --rm \
-                    -v `pwd`/naiscaper-output:/naiscaper/output \
-                    -v `pwd`/nais-platform-apps/base:/naiscaper/input/base:ro \
-                    -v `pwd`/nais-platform-apps/clusters/${clusterName}:/naiscaper/input/overrides:ro \
-                    navikt/naiscaper:${naiscaperDryRunVersion} \
-                    /bin/bash -c \"naiscaper /naiscaper/input/base /naiscaper/input/overrides /naiscaper/output\"
-              """
+            sh """
+                docker volume create "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
+                docker run --rm \
+                  -v naiscaper-output-${clusterName}-${env.BUILD_NUMBER}:/naiscaper/output \
+                  -v `pwd`/nais-platform-apps/base:/naiscaper/input/base:ro \
+                  -v `pwd`/nais-platform-apps/clusters/${clusterName}:/naiscaper/input/overrides:ro \
+                  navikt/naiscaper:${naiscaperVersion} \
+                  /bin/bash -c \"naiscaper /naiscaper/input/base /naiscaper/input/overrides /naiscaper/output\"
+            """
 
-              sh """
-                  docker run --rm \
-                    -v `pwd`/naiscaper-output:/apply \
-                    -v `pwd`/${clusterName}:/root/.kube \
-                    navikt/bashscaper:${bashscaperVersion} \
-                    /bin/bash -c \"/usr/bin/helm repo update && bashscaper nais ${clusterName} /apply/*.yaml\"
-              """
-            } else {
-              sh("docker run --rm -v `pwd`/nais-platform-apps:/root/nais-platform-apps -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && naiscaper ${clusterName} nais /root/nais-platform-apps\"")
-            }
+            sh """
+                docker run --rm \
+                  -v naiscaper-output-${clusterName}-${env.BUILD_NUMBER}:/apply \
+                  -v `pwd`/${clusterName}:/root/.kube \
+                  navikt/bashscaper:${bashscaperVersion} \
+                  /bin/bash -c \"/usr/bin/helm repo update && bashscaper nais ${clusterName} /apply/*.yaml\"
+                docker volume rm "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
+            """
         }
 
         stage("update nais 3rd party apps") {
-            if (useBashscaper) {
-              sh """
-                  if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
-                      docker run --rm \
-                        -v `pwd`/nais-tpa/clusters/${clusterName}:/apply \
-                        -v `pwd`/${clusterName}:/root/.kube \
-                        navikt/bashscaper:${bashscaperVersion} \
-                        /bin/bash -c \"/usr/bin/helm repo update && bashscaper tpa ${clusterName} /apply/*.yaml\"
-                  else
-                      echo "No third party apps defined for ${clusterName}, skipping"
-                  fi
-              """
-            } else {
-              sh """
-                  if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
-                      docker run --rm -v `pwd`/nais-tpa:/root/nais-tpa -v `pwd`/${clusterName}:/root/.kube navikt/naiscaper:${naiscaperVersion} /bin/bash -c \"/usr/bin/helm repo update && /usr/bin/landscaper -v --env ${clusterName} --context ${clusterName} --namespace tpa apply --wait --wait-timeout 10m /root/nais-tpa/clusters/${clusterName}/*.yaml\"
-                  else
-                      echo "No third party apps defined for ${clusterName}, skipping"
-                  fi
-              """
-            }
-        }
-
-        stage("deploy nais-testapp") {
-            // wait until naisd is up
-            retry(15) {
-                sleep 5
-                httpRequest acceptType: 'APPLICATION_JSON',
-                            consoleLogResponseBody: true,
-                            ignoreSslErrors: true,
-                            responseHandle: 'NONE',
-                            url: 'https://daemon.' + clusterSuffix + '/deploystatus/default/nais-testapp',
-                            validResponseCodes: '200,404'
-            }
-
-            withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
-                sh "curl --ipv4 --fail https://raw.githubusercontent.com/nais/nais-testapp/master/package.json > ./package.json"
-            }
-
-            def releaseVersion = sh(script: "node -pe 'require(\"./package.json\").version'", returnStdout: true).trim()
-
-            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'srvauraautodeploy', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                sh "curl --ipv4 --fail -k -d \'{\"application\": \"nais-testapp\", \"version\": \"${releaseVersion}\", \"fasitEnvironment\": \"ci\", \"zone\": \"fss\", \"fasitUsername\": \"${env.USERNAME}\", \"fasitPassword\": \"${env.PASSWORD}\", \"namespace\": \"default\", \"manifesturl\": \"https://raw.githubusercontent.com/nais/nais-testapp/master/nais.yaml\"}\' https://daemon.${clusterSuffix}/deploy"
-            }
-        }
-
-        stage("verify resources") {
-            retry(15) {
-                sleep 5
-                httpRequest acceptType: 'APPLICATION_JSON',
-                            consoleLogResponseBody: true,
-                            ignoreSslErrors: true,
-                            responseHandle: 'NONE',
-                            url: 'https://nais-testapp.' + clusterSuffix + '/healthcheck',
-                            validResponseCodes: '200'
-            }
+            sh """
+                if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
+                    docker run --rm \
+                      -v `pwd`/nais-tpa/clusters/${clusterName}:/apply \
+                      -v `pwd`/${clusterName}:/root/.kube \
+                      navikt/bashscaper:${bashscaperVersion} \
+                      /bin/bash -c \"/usr/bin/helm repo update && bashscaper tpa ${clusterName} /apply/*.yaml\"
+                else
+                    echo "No third party apps defined for ${clusterName}, skipping"
+                fi
+            """
         }
 
         stage("stop monitoring and get results of nais-testapp monitoring") {
@@ -234,7 +185,6 @@ node {
             currentBuild.result = "SUCCESS"
             currentBuild.description = "${clusterName} ok"
         }
-
     } catch (e) {
         if (currentBuild.result == null) {
             currentBuild.result = "FAILURE"
@@ -243,6 +193,7 @@ node {
 
         slackSend channel: '#nais-ci', color: "danger", message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
+        sh("docker volume rm \"naiscaper-output-${clusterName}-${env.BUILD_NUMBER}\"")
         throw e
     }
 }
