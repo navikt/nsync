@@ -1,5 +1,5 @@
 node {
-  def environments = ['nais-ci', 'nais-dev', 'preprod-fss', 'preprod-sbs', 'prod-fss', 'prod-sbs', 'nais-dev-fss']
+  def environments = ['nais-ci', 'nais-dev-fss', 'nais-dev', 'preprod-fss', 'preprod-sbs', 'prod-fss', 'prod-sbs']
 
   try {
     stage("Git clone repos") {
