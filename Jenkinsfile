@@ -57,7 +57,7 @@ node {
 
         stage("pause reboots from reboot-coordinator") {
             if (fileExists("${clusterName}/config")) {
-              sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true" || true)
+              sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=true || true")
             } else {
               echo 'Skipping stage because no kubeconfig was found.'
             }
