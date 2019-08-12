@@ -129,9 +129,9 @@ node {
 
         stage("update nais platform apps") {
             sh """
-                rm -rf `pwd`/naiscaper-output/*
+                docker volume create "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
                 docker run --rm \
-                  -v `pwd`/naiscaper-output:/naiscaper/output \
+                  -v naiscaper-output-${clusterName}-${env.BUILD_NUMBER}:/naiscaper/output \
                   -v `pwd`/nais-platform-apps/base:/naiscaper/input/base:ro \
                   -v `pwd`/nais-platform-apps/clusters/${clusterName}:/naiscaper/input/overrides:ro \
                   navikt/naiscaper:${naiscaperVersion} \
@@ -140,10 +140,11 @@ node {
 
             sh """
                 docker run --rm \
-                  -v `pwd`/naiscaper-output:/apply \
+                  -v naiscaper-output-${clusterName}-${env.BUILD_NUMBER}:/apply \
                   -v `pwd`/${clusterName}:/root/.kube \
                   navikt/bashscaper:${bashscaperVersion} \
                   /bin/bash -c \"/usr/bin/helm repo update && bashscaper nais ${clusterName} /apply/*.yaml\"
+                docker volume rm "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
             """
         }
 
@@ -219,7 +220,6 @@ node {
             currentBuild.result = "SUCCESS"
             currentBuild.description = "${clusterName} ok"
         }
-
     } catch (e) {
         if (currentBuild.result == null) {
             currentBuild.result = "FAILURE"
@@ -228,6 +228,7 @@ node {
 
         slackSend channel: '#nais-ci', color: "danger", message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
+        sh("docker volume rm \"naiscaper-output-${clusterName}-${env.BUILD_NUMBER}\"")
         throw e
     }
 }
