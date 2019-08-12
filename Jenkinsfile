@@ -129,6 +129,7 @@ node {
 
         stage("update nais platform apps") {
             sh """
+                rm -rf `pwd`/naiscaper-output/*
                 docker run --rm \
                   -v `pwd`/naiscaper-output:/naiscaper/output \
                   -v `pwd`/nais-platform-apps/base:/naiscaper/input/base:ro \
