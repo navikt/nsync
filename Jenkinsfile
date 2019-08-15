@@ -162,41 +162,6 @@ node {
             """
         }
 
-        stage("deploy nais-testapp") {
-            // wait until naisd is up
-            retry(15) {
-                sleep 5
-                httpRequest acceptType: 'APPLICATION_JSON',
-                            consoleLogResponseBody: true,
-                            ignoreSslErrors: true,
-                            responseHandle: 'NONE',
-                            url: 'https://daemon.' + clusterSuffix + '/deploystatus/default/nais-testapp',
-                            validResponseCodes: '200,404'
-            }
-
-            withEnv(['HTTPS_PROXY=http://webproxy-utvikler.nav.no:8088', 'NO_PROXY=adeo.no']) {
-                sh "curl --ipv4 --fail https://raw.githubusercontent.com/nais/nais-testapp/master/package.json > ./package.json"
-            }
-
-            def releaseVersion = sh(script: "node -pe 'require(\"./package.json\").version'", returnStdout: true).trim()
-
-            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'srvauraautodeploy', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                sh "curl --ipv4 --fail -k -d \'{\"application\": \"nais-testapp\", \"version\": \"${releaseVersion}\", \"fasitEnvironment\": \"ci\", \"zone\": \"fss\", \"fasitUsername\": \"${env.USERNAME}\", \"fasitPassword\": \"${env.PASSWORD}\", \"namespace\": \"default\", \"manifesturl\": \"https://raw.githubusercontent.com/nais/nais-testapp/master/nais.yaml\"}\' https://daemon.${clusterSuffix}/deploy"
-            }
-        }
-
-        stage("verify resources") {
-            retry(15) {
-                sleep 5
-                httpRequest acceptType: 'APPLICATION_JSON',
-                            consoleLogResponseBody: true,
-                            ignoreSslErrors: true,
-                            responseHandle: 'NONE',
-                            url: 'https://nais-testapp.' + clusterSuffix + '/healthcheck',
-                            validResponseCodes: '200'
-            }
-        }
-
         stage("stop monitoring and get results of nais-testapp monitoring") {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
