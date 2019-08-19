@@ -128,7 +128,7 @@ node {
                   cp `pwd`/nais-yaml/raw/*.yaml `pwd`/out/raw || true
                   cp `pwd`/nais-yaml/raw/${clusterName}/*.yaml `pwd`/out/raw || true
                 """)
-                sh("docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
+                sh("docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply --recursive=true -f /nais-yaml")
             }
         }
 
