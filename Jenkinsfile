@@ -125,8 +125,8 @@ node {
                 sh("docker run --rm -v `pwd`/nais-yaml/templates:/templates -v `pwd`/nais-yaml/vars:/vars -v `pwd`/out:/out navikt/naisplater:${naisplaterVersion} /bin/bash -c \"naisplater ${clusterName} /templates /vars /out ${ENC_KEY}\"")
                 sh("""
                   mkdir -p `pwd`/out/raw
-                  cp `pwd`/nais-yaml/raw/*.yaml `pwd`/out/raw
-                  cp `pwd`/nais-yaml/raw/${clusterName}/*.yaml `pwd`/out/raw
+                  cp `pwd`/nais-yaml/raw/*.yaml `pwd`/out/raw || true
+                  cp `pwd`/nais-yaml/raw/${clusterName}/*.yaml `pwd`/out/raw || true
                 """)
                 sh("docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply -f /nais-yaml")
             }
