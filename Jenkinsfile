@@ -37,10 +37,6 @@ node {
                 git credentialsId: 'nais-platform-apps', url: "git@github.com:navikt/nais-platform-apps.git", changelog: false
             }
 
-//            dir("nais-tpa") {
-//                git credentialsId: 'nais-tpa', url: "git@github.com:navikt/nais-tpa.git", changelog: false
-//            }
-
             dir("nais-yaml") {
                 git credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git", changelog: false
             }
@@ -152,20 +148,6 @@ node {
                 docker volume rm "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
             """
         }
-
-//        stage("update nais 3rd party apps") {
-//            sh """
-//                if [[ -d ./nais-tpa/clusters/${clusterName} ]]; then
-//                    docker run --rm \
-//                      -v `pwd`/nais-tpa/clusters/${clusterName}:/apply \
-//                      -v `pwd`/${clusterName}:/root/.kube \
-//                      navikt/bashscaper:${bashscaperVersion} \
-//                      /bin/bash -c \"/usr/bin/helm repo update && bashscaper tpa ${clusterName} /apply/*.yaml\"
-//                else
-//                    echo "No third party apps defined for ${clusterName}, skipping"
-//                fi
-//            """
-//        }
 
         stage("stop monitoring and get results of nais-testapp monitoring") {
             if (skipUptimed) {
