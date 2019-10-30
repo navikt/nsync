@@ -180,7 +180,10 @@ node {
 
         slackSend channel: '#nais-ci', color: "danger", message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
-        sh("docker volume rm \"naiscaper-output-${clusterName}-${env.BUILD_NUMBER}\"")
+        sh """
+          echo If this next step fails, it just means that the pipeline failed before the volume was created.
+          docker volume rm \"naiscaper-output-${clusterName}-${env.BUILD_NUMBER}\" || true
+        """
         throw e
     }
 }
