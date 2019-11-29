@@ -61,6 +61,10 @@ node {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of up'
             } else {
+                sh("""
+                    pwd
+                    ls -la
+                """)
                 sh("nohup sh -c '( ( ./uptimed.sh https://up.${clusterName}.nais.io/ping 600 ) & echo \$! > pid )' > ./nohup.out")
             }
         }
