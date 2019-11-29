@@ -7,7 +7,7 @@ if [ -d /proc/"$(cat pid)" ]; then
 else
     echo "uptimed.sh is not running...";
     cat ./uptimed_last_output
-    echo "----- nohup.out -----"
+    echo "------ nohup.out ------"
     cat nohup.out
     exit 1;
 fi
