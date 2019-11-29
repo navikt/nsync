@@ -9,7 +9,7 @@ node {
     def bashscaperVersion = '13.0.0'
     def naisplaterVersion = '9.0.0'
     def kubectlImageTag = 'v1.12.3'
-    def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
+    //def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -62,32 +62,6 @@ node {
                 echo '[SKIPPING] skipping monitoring of up'
             } else {
                 sh("nohup sh -c '( ( ./uptime.sh https://up.${clusterSuffix}/ping 600 ) & echo \$! > pid )' > `pwd`/nohup.out")
-            }
-        }
-        stage("start monitoring of nais-testapp") {
-            if (skipUptimed) {
-                echo '[SKIPPING] skipping monitoring of nais-testapp'
-            } else if (!fileExists("${clusterName}/config")) {
-                echo 'Skipping stage because no kubeconfig was found.'
-            } else {
-                sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
-                sh("rm -rf ./out && mkdir -p ./out")
-                uptimedVersionFromPod = sh(script: "docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} get pods -n nais -l app=uptimed -o jsonpath=\"{..image}\" |tr -s '[[:space:]]' '\\n' |uniq -c | cut -d: -f2", returnStdout: true).trim()
-                if (uptimedVersionFromPod.isInteger()) {
-                    uptimedVersionFromPod = uptimedVersionFromPod.toInteger()
-                }
-                uptimedVersionNaisYaml = sh(script: "cat nais-yaml/vars/uptimed.yaml | cut -d: -f2", returnStdout: true).trim().toInteger()
-                masterNode = sh(script: "cat nais-inventory/${clusterName} | awk '/masters/{getline;print}'", returnStdout: true).trim()
-                doesMasterHaveApiServer = sh(script: "nc -w 2 ${masterNode} 6443 </dev/null; echo \$?", returnStdout: true).trim().toInteger()
-                if (uptimedVersionNaisYaml <= uptimedVersionFromPod && doesMasterHaveApiServer == 0) {
-                    monitorId = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/start?endpoint=https://nais-testapp.${clusterSuffix}/isalive&interval=1&timeout=900", returnStdout: true).trim()
-                    sh """
-                        if [[ "${monitorId}" == "" ]]; then
-                            echo "No monitoring will be done for nais-testapp, could not start monitor"
-                            exit 1
-                        fi
-                    """
-                }
             }
         }
 
@@ -157,18 +131,6 @@ node {
         }
         stage("check status of monitoring and kill script") {
             sh("sh ./check_uptime.sh")
-        }
-        stage("stop monitoring and get results of nais-testapp monitoring") {
-            if (skipUptimed) {
-                echo '[SKIPPING] skipping monitoring of nais-testapp'
-            } else {
-                if (uptimedVersionNaisYaml <= uptimedVersionFromPod && doesMasterHaveApiServer == 0) {
-                    result = sh(script: "curl -s -X POST https://uptimed.${clusterSuffix}/stop/${monitorId}", returnStdout: true)
-                    if ("100.00" != result) {
-                        error("nais-testapp did not respond all ok during nsync of ${clusterName}. Response from uptimed was: ${result}")
-                    }
-                }
-            }
         }
 
         stage("resume reboots from reboot-coordinator") {
