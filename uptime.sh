@@ -15,7 +15,7 @@ for i in $(seq 1 "$RETRIES"); do
     echo "curl failed, last output below:"
     cat "$LAST_OUTPUT"
     # cange to exit 1 when things are working
-    exit 0
+    exit 1
   fi
 
   sleep "$SLEEP_DURATION"
