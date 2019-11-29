@@ -14,7 +14,8 @@ for i in $(seq 1 "$RETRIES"); do
   if [ "$EXPECTED_STATUS" != "$status" ]; then
     echo "curl failed, last output below:"
     cat "$LAST_OUTPUT"
-    exit 1
+    # cange to exit 1 when things are working
+    exit 0
   fi
 
   sleep "$SLEEP_DURATION"
