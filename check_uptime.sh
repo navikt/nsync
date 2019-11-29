@@ -9,5 +9,5 @@ else
     cat ./uptimed_last_output
     echo "----- nohup.out -----"
     cat nohup.out
-    exit 1;
+    exit 0;
 fi
