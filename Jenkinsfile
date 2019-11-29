@@ -62,10 +62,10 @@ node {
                 echo '[SKIPPING] skipping monitoring of up'
             } else {
                 sh("""
-                    pwd
+                    pw`
                     ls -la
                 """)
-                sh("nohup sh -c '( ( ./uptimed.sh https://up.${clusterName}.nais.io/ping 600 ) & echo \$! > pid )' > ./nohup.out")
+                sh("nohup sh -c '( ( ./uptime.sh https://up.${clusterName}.nais.io/ping 600 ) & echo \$! > pid )' > `pwd`/nohup.out")
             }
         }
         /*stage("start monitoring of nais-testapp") {
@@ -160,9 +160,9 @@ node {
             """
         }
         stage("check status of monitoring and kill script") {
-            sh("sh ./check_uptimed.sh")
+            sh("sh ./check_uptime.sh")
         }
-        /*stage("stop monitoring and get results of nais-testapp monitoring") {
+        /*stage("stop monitoring a`d get results of nais-testapp monitoring") {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
             } else {
