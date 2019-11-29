@@ -57,7 +57,14 @@ node {
             }
         }
 
-        stage("start monitoring of nais-testapp") {
+        stage ("start monitoring of up") {
+            if (skipUptimed) {
+                echo '[SKIPPING] skipping monitoring of up'
+            } else {
+                sh("nohup sh -c '( ( ./uptimed.sh https://up.${clusterName}.nais.io/ping 600 ) & echo $! > pid )' > ./nohup.out")
+            }
+        }
+        /*stage("start monitoring of nais-testapp") {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
             } else if (!fileExists("${clusterName}/config")) {
@@ -82,7 +89,7 @@ node {
                     """
                 }
             }
-        }
+        }*/
 
         stage("run naisible") {
             if (skipNaisible) {
@@ -148,8 +155,10 @@ node {
                 docker volume rm "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
             """
         }
-
-        stage("stop monitoring and get results of nais-testapp monitoring") {
+        stage("check status of monitoring and kill script") {
+            sh("sh ./check_uptimed.sh")
+        }
+        /*stage("stop monitoring and get results of nais-testapp monitoring") {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of nais-testapp'
             } else {
@@ -160,7 +169,7 @@ node {
                     }
                 }
             }
-        }
+        }*/
 
         stage("resume reboots from reboot-coordinator") {
             sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite container-linux-update.v1.coreos.com/reboot-paused=false")
