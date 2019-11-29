@@ -14,7 +14,6 @@ for i in $(seq 1 "$RETRIES"); do
   if [ "$EXPECTED_STATUS" != "$status" ]; then
     echo "curl failed, last output below:"
     cat "$LAST_OUTPUT"
-    # cange to exit 1 when things are working
     exit 1
   fi
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 echo "Checking uptimed.sh - $(date)"
-if [ -d /proc/$(cat pid) ]; then
+if [ -d /proc/"$(cat pid)" ]; then
     echo "uptimed.sh [$(cat pid)] is still running...";
-    kill $(cat pid)
+    kill "$(cat pid)"
     exit 0;
 else
     echo "uptimed.sh is not running...";
