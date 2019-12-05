@@ -12,4 +12,4 @@ docker run --rm -i \
   -e F5_PASSWORD \
   -e VSPHERE_USERNAME \
   -e VSPHERE_PASSWORD \
-  navikt/ansible-playbook:2.8.5 "$@"
+  navikt/ansible-playbook:2.9.1 "$@"
