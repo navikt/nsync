@@ -61,7 +61,7 @@ node {
             if (skipUptimed) {
                 echo '[SKIPPING] skipping monitoring of up'
             } else {
-                sh("nohup sh -c '( ( ./uptime.sh https://up.${clusterSuffix}/ping 600 ) & echo \$! > pid )' > `pwd`/nohup.out")
+                sh("nohup sh -c '( ( ./uptime.sh https://up.${clusterSuffix}/ping 1500 ) & echo \$! > pid )' > `pwd`/nohup.out")
             }
         }
 
