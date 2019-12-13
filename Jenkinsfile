@@ -130,7 +130,11 @@ node {
             """
         }
         stage("check status of monitoring and kill script") {
-            sh("sh ./check_uptime.sh")
+            if (skipUptimed) {
+                echo '[SKIPPING] skip checking uptime
+            } else {
+                sh("sh ./check_uptime.sh")
+            }
         }
 
         stage("resume reboots from reboot-coordinator") {
