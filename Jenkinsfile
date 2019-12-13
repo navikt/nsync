@@ -131,7 +131,7 @@ node {
         }
         stage("check status of monitoring and kill script") {
             if (skipUptimed) {
-                echo '[SKIPPING] skip checking uptime
+                echo '[SKIPPING] skip checking uptime'
             } else {
                 sh("sh ./check_uptime.sh")
             }
