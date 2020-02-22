@@ -1,5 +1,5 @@
 node {
-  def environments = ['nais-ci', 'nais-dev-fss', 'nais-dev', 'dev-fss', 'dev-sbs', 'prod-fss', 'prod-sbs', 'kubeflow', 'kubeflow-dex', 'kubeflow-https']
+  def environments = ['nais-ci', 'nais-dev-fss', 'dev-fss', 'dev-sbs', 'prod-fss', 'prod-sbs', 'kubeflow', 'kubeflow-dex', 'kubeflow-https']
 
   try {
     stage("Git clone repos") {
