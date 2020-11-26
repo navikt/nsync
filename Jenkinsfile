@@ -5,8 +5,6 @@ node {
     def naisibleBranch = params.branch
     def skipUptimed = params.skipUptimed
     def skipNaisible = params.skipNaisible
-    def naiscaperVersion = '34.0.0'
-    def bashscaperVersion = '18.0.0'
     def naisplaterVersion = '9.0.0'
     def kubectlImageTag = 'v1.12.3'
     //def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
@@ -19,7 +17,7 @@ node {
         stage("init") {
             git url: "https://github.com/navikt/nsync.git", changelog: false
 
-            sh("rm -rf naisible nais-inventory nais-platform-apps nais-yaml ca-certificates")
+            sh("rm -rf naisible nais-inventory nais-yaml ca-certificates")
 
             dir("nais-inventory") {
                 git credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git", changelog: false
@@ -31,10 +29,6 @@ node {
                 } else {
                     git url: "https://github.com/nais/naisible.git", changelog: false
                 }
-            }
-
-            dir("nais-platform-apps") {
-                git credentialsId: 'nais-platform-apps', url: "git@github.com:navikt/nais-platform-apps.git", changelog: false
             }
 
             dir("nais-yaml") {
@@ -99,26 +93,6 @@ node {
             }
         }
 
-        stage("update nais platform apps") {
-            sh """
-                docker volume create "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
-                docker run --rm \
-                  -v naiscaper-output-${clusterName}-${env.BUILD_NUMBER}:/naiscaper/output \
-                  -v `pwd`/nais-platform-apps/base:/naiscaper/input/base:ro \
-                  -v `pwd`/nais-platform-apps/clusters/${clusterName}:/naiscaper/input/overrides:ro \
-                  navikt/naiscaper:${naiscaperVersion} \
-                  /bin/bash -c \"naiscaper /naiscaper/input/base /naiscaper/input/overrides /naiscaper/output\"
-            """
-
-            sh """
-                docker run --rm \
-                  -v naiscaper-output-${clusterName}-${env.BUILD_NUMBER}:/apply \
-                  -v `pwd`/${clusterName}:/root/.kube \
-                  navikt/bashscaper:${bashscaperVersion} \
-                  /bin/bash -c \"/usr/bin/helm repo update && bashscaper nais ${clusterName} /apply/*.yaml\"
-                docker volume rm "naiscaper-output-${clusterName}-${env.BUILD_NUMBER}"
-            """
-        }
         stage("check status of monitoring and kill script") {
             if (skipUptimed) {
                 echo '[SKIPPING] skip checking uptime'
@@ -145,10 +119,6 @@ node {
 
         slackSend channel: '#nais-ci', color: "danger", message: ":shit: nsync of ${clusterName} failed: ${e.getMessage()}.\nSee log for more info ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
-        sh """
-          echo If this next step fails, it just means that the pipeline failed before the volume was created.
-          docker volume rm \"naiscaper-output-${clusterName}-${env.BUILD_NUMBER}\" || true
-        """
         throw e
     }
 }
