@@ -17,7 +17,7 @@ node {
         stage("init") {
             git url: "https://github.com/navikt/nsync.git", changelog: false
 
-            sh("rm -rf naisible nais-inventory nais-yaml ca-certificates")
+            sh("rm -rf naisible nais-inventory")
 
             dir("nais-inventory") {
                 git credentialsId: 'nais-inventory', url: "git@github.com:navikt/nais-inventory.git", changelog: false
@@ -29,14 +29,6 @@ node {
                 } else {
                     git url: "https://github.com/nais/naisible.git", changelog: false
                 }
-            }
-
-            dir("nais-yaml") {
-                git credentialsId: 'nais-yaml', url: "git@github.com:navikt/nais-yaml.git", changelog: false
-            }
-
-            dir("ca-certificates") {
-                git credentialsId: 'ca-certificates', url: "git@github.com:navikt/ca-certificates.git", changelog: false
             }
 
             def inventory_vars = readYaml file: "./nais-inventory/${clusterName}-vars.yaml"
@@ -73,23 +65,6 @@ node {
             } else {
               sleep 15 // allow addons to start
               sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/test-playbook.yaml")
-            }
-        }
-
-        stage("fetch kubeconfig for cluster") {
-            sh("ansible-playbook -i nais-inventory/${clusterName} -e @nais-inventory/${clusterName}-vars.yaml ./fetch-kube-config.yaml")
-        }
-
-        stage("run naisplater") {
-            withCredentials([string(credentialsId: 'encryption_key', variable: 'ENC_KEY')]) {
-                sh("rm -rf ./out && mkdir -p ./out")
-                sh("docker run --rm -v `pwd`/nais-yaml/templates:/templates -v `pwd`/nais-yaml/vars:/vars -v `pwd`/out:/out navikt/naisplater:${naisplaterVersion} /bin/bash -c \"naisplater ${clusterName} /templates /vars /out ${ENC_KEY}\"")
-                sh("""
-                  mkdir -p `pwd`/out/raw
-                  cp `pwd`/nais-yaml/raw/*.yaml `pwd`/out/raw || true
-                  cp `pwd`/nais-yaml/raw/${clusterName}/*.yaml `pwd`/out/raw || true
-                """)
-                sh("docker run --rm -v `pwd`/out:/nais-yaml -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} apply --recursive=true -f /nais-yaml")
             }
         }
 
