@@ -35,13 +35,13 @@ node {
             clusterSuffix = inventory_vars.cluster_lb_suffix
         }
 
-        stage("pause reboots from reboot-coordinator") {
-            if (fileExists("${clusterName}/config")) {
-              sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite flatcar-linux-update.v1.flatcar-linux.net/reboot-paused=true || true")
-            } else {
-              echo 'Skipping stage because no kubeconfig was found.'
-            }
-        }
+//        stage("pause reboots from reboot-coordinator") {
+//            if (fileExists("${clusterName}/config")) {
+//              sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite flatcar-linux-update.v1.flatcar-linux.net/reboot-paused=true || true")
+//            } else {
+//              echo 'Skipping stage because no kubeconfig was found.'
+//            }
+//        }
 
         stage ("start monitoring of up") {
             if (skipUptimed) {
@@ -76,9 +76,9 @@ node {
             }
         }
 
-        stage("resume reboots from reboot-coordinator") {
-            sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite flatcar-linux-update.v1.flatcar-linux.net/reboot-paused=false")
-        }
+//        stage("resume reboots from reboot-coordinator") {
+//            sh("docker run --rm -v `pwd`/${clusterName}/config:/root/.kube/config lachlanevenson/k8s-kubectl:${kubectlImageTag} annotate nodes --all --overwrite flatcar-linux-update.v1.flatcar-linux.net/reboot-paused=false")
+//        }
 
         slackSend channel: '#nais-ci', color: "good", message: "${clusterName} successfully nsynced :nais: ${env.BUILD_URL}", teamDomain: 'nav-it', tokenCredentialId: 'slack_fasit_frontend'
 
