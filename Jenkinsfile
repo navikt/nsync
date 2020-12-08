@@ -4,10 +4,7 @@ node {
     def clusterName = params.cluster
     def naisibleBranch = params.branch
     def skipUptimed = params.skipUptimed
-    def skipNaisible = params.skipNaisible
-    def naisplaterVersion = '9.0.0'
     def kubectlImageTag = 'v1.12.3'
-    //def uptimedVersionFromPod, uptimedVersionNaisYaml, doesMasterHaveApiServer
 
     if (!clusterName?.trim()){
         error "cluster is not defined, aborting"
@@ -52,20 +49,12 @@ node {
         }
 
         stage("run naisible") {
-            if (skipNaisible) {
-              echo '[SKIPPING] naisible setup playbook'
-            } else {
-                sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/setup-playbook.yaml")
-            }
+            sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/setup-playbook.yaml")
         }
 
         stage("test basic functionality") {
-            if (skipNaisible) {
-              echo '[SKIPPING] naisible test playbook'
-            } else {
-              sleep 15 // allow addons to start
-              sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/test-playbook.yaml")
-            }
+            sleep 15 // allow addons to start
+            sh("./ansible-playbook -f 20 --key-file=/home/jenkins/.ssh/id_rsa -i inventory/${clusterName} -e @inventory/${clusterName}-vars.yaml playbooks/test-playbook.yaml")
         }
 
         stage("check status of monitoring and kill script") {
