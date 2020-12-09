@@ -10,6 +10,4 @@ docker run --rm -i \
   -e ANSIBLE_CONFIG=/ansible.cfg \
   -e F5_USER \
   -e F5_PASSWORD \
-  -e VSPHERE_USERNAME \
-  -e VSPHERE_PASSWORD \
   navikt/ansible-playbook:2.9.1 "$@"
